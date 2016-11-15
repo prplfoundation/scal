@@ -16,3 +16,5 @@ FIND_LIBRARY(ubus_library NAMES ubus)
 
 ADD_EXECUTABLE(scald scald.c ubus.c plugin.c model.c)
 TARGET_LINK_LIBRARIES(scald ubus ${ubox_library} ${ubus_library} dl)
+
+ADD_SUBDIRECTORY(plugins)
