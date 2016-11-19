@@ -50,16 +50,9 @@ static struct x_object mgmt = {
 	.params = mgmt_par,
 };
 
-static struct x_object device = {
-	.obj.name = "Device",
-	.sub = {
-		&mgmt
-	},
-};
-
 static struct x_object root = {
 	.sub = {
-		&device
+		&mgmt
 	},
 };
 
