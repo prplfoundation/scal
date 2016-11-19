@@ -168,6 +168,7 @@ enum scapi_error {
 	SC_ERR_NOT_FOUND,
 	SC_ERR_NOT_SUPPORTED,
 	SC_ERR_INVALID_DATA,
+	SC_ERR_NO_DATA,
 	__SC_ERR_MAX,
 };
 
