@@ -128,6 +128,8 @@ void sj_object_run_script(struct sj_model *model, struct sj_object *obj);
 int sj_object_set_instance(struct sj_model *model, struct sj_object *obj, const char *name);
 int sj_object_get_instances(struct sj_model *model, struct sj_object *obj,
 			    struct blob_attr **val);
+int sj_object_get_from_path(struct sj_model *model, struct blob_attr *path,
+			    struct sj_object **ret, bool *instances);
 
 int sj_param_get(struct sj_model *model, struct sj_object_param *par,
 		 struct blob_attr **data);

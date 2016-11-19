@@ -115,3 +115,38 @@ int sj_object_set_instance(struct sj_model *model, struct sj_object *obj, const 
 
 	return SC_ERR_INVALID_ARGUMENT;
 }
+
+int sj_object_get_from_path(struct sj_model *model, struct blob_attr *path,
+			    struct sj_object **ret, bool *instances)
+{
+	struct avl_tree *tree = &model->objects;
+	struct sj_object *obj = NULL;
+	struct blob_attr *cur;
+	int rem;
+
+	*instances = false;
+	blobmsg_for_each_attr(cur, path, rem) {
+		const char *name = blobmsg_get_string(cur);
+		int ret;
+
+		if (*instances) {
+			*instances = false;
+
+			ret = sj_object_set_instance(model, obj, name);
+			if (ret)
+				return ret;
+
+			continue;
+		}
+
+		obj = avl_find_element(tree, name, obj, avl);
+		if (!obj)
+			return SC_ERR_NOT_FOUND;
+
+		tree = &obj->objects;
+		*instances = !!obj->get_instance_keys;
+	}
+	*ret = obj;
+
+	return 0;
+}
