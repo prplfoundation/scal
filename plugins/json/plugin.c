@@ -23,16 +23,112 @@ AVL_TREE(backends, avl_strcmp, false, NULL);
 AVL_TREE(filters, avl_strcmp, false, NULL);
 
 static int
+sj_path_object_get(struct sj_model *model, struct blob_attr *path,
+		   struct sj_object **ret, bool *instances)
+{
+	struct avl_tree *tree = &model->objects;
+	struct sj_object *obj = NULL;
+	struct blob_attr *cur;
+	int rem;
+
+	*instances = false;
+	blobmsg_for_each_attr(cur, path, rem) {
+		const char *name = blobmsg_get_string(cur);
+		int ret;
+
+		if (*instances) {
+			*instances = false;
+
+			ret = sj_object_set_instance(model, obj, name);
+			if (ret)
+				return ret;
+
+			continue;
+		}
+
+		obj = avl_find_element(tree, name, obj, avl);
+		if (!obj)
+			return SC_ERR_NOT_FOUND;
+
+		tree = &obj->objects;
+		*instances = !!obj->get_instance_keys;
+	}
+	*ret = obj;
+
+	return 0;
+}
+
+static int
 sj_api_object_get(struct scapi_ptr *ptr)
 {
-	return -1;
+	struct sj_model *model = ptr->model_priv;
+	struct sj_object *obj = NULL;
+	bool instances;
+	int ret;
+
+	ret = sj_path_object_get(model, ptr->path, &obj, &instances);
+	if (ret)
+	    return ret;
+
+	if (!obj)
+		return SC_ERR_NOT_FOUND;
+
+	ptr->obj = &obj->scapi;
+	obj->scapi.name = instances ? sj_object_name(obj) : obj->instance;
+	obj->scapi.multi_instance = instances;
+
+	return 0;
 }
 
 static int
 sj_api_object_list(struct scapi_ptr *ptr, scapi_object_cb fill,
 		   struct scapi_list_ctx *ctx)
 {
-	return -1;
+	struct sj_model *model = ptr->model_priv;
+	struct sj_object *obj;
+	bool instances;
+	int ret;
+
+	ret = sj_path_object_get(model, ptr->path, &obj, &instances);
+	if (ret)
+	    return ret;
+
+	if (instances) {
+		struct blob_attr *list, *cur;
+		int rem;
+
+		ret = sj_object_get_instances(model, obj, &list);
+		if (ret)
+			return ret;
+
+		list = blob_memdup(list);
+		if (!list)
+			return SC_ERR_UNKNOWN;
+
+		obj->scapi.multi_instance = false;
+		blobmsg_for_each_attr(cur, list, rem) {
+			const char *name = blobmsg_get_string(cur);
+
+			if (sj_object_set_instance(model, obj, name))
+				continue;
+
+			obj->scapi.name = obj->instance;
+			fill(ctx, &obj->scapi);
+		}
+		free(list);
+	} else {
+		struct avl_tree *list;
+		struct sj_object *cur;
+
+		list = obj ? &obj->objects : &model->objects;
+		avl_for_each_element(list, cur, avl) {
+			cur->scapi.name = sj_object_name(cur);
+			cur->scapi.multi_instance = !!cur->get_instance_keys;
+			fill(ctx, &cur->scapi);
+		}
+	}
+
+	return 0;
 }
 
 static int

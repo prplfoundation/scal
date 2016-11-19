@@ -45,6 +45,8 @@ struct sj_filter {
 };
 
 struct sj_object_param {
+	struct scapi_parameter scapi;
+
 	struct avl_node avl;
 
 	struct sj_object *obj;
@@ -63,7 +65,16 @@ struct sj_object_param {
 	void *priv;
 };
 
+struct sj_instance_list {
+	struct list_head list;
+
+	struct blob_attr *data;
+	const char *path[];
+};
+
 struct sj_object {
+	struct scapi_object scapi;
+
 	struct avl_node avl;
 	struct sj_object *parent;
 
@@ -109,6 +120,16 @@ void sj_parser_free_data(void);
 
 int sj_filter_json(struct blob_buf *buf, struct blob_attr *data,
 		   const struct blob_attr *key, const char *select);
+void sj_script_eval_list(struct sj_model *model, struct blob_buf *buf,
+			 struct blob_attr *data);
+
+void sj_object_run_script(struct sj_model *model, struct sj_object *obj);
+int sj_object_set_instance(struct sj_model *model, struct sj_object *obj, const char *name);
+int sj_object_get_instances(struct sj_model *model, struct sj_object *obj,
+			    struct blob_attr **val);
+
+int sj_param_get(struct sj_model *model, struct sj_object_param *par,
+		 struct blob_attr **data);
 
 static inline struct sj_filter *
 sj_filter_get(const char *name)
@@ -133,6 +154,18 @@ sj_backend_add(struct sj_backend *b, const char *name)
 {
 	b->avl.key = name;
 	avl_insert(&backends, &b->avl);
+}
+
+static inline const char *
+sj_object_name(struct sj_object *obj)
+{
+	return obj->avl.key;
+}
+
+static inline const char *
+sj_object_param_name(struct sj_object_param *par)
+{
+	return par->avl.key;
 }
 
 #endif

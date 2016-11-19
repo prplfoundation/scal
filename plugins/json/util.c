@@ -16,6 +16,49 @@
  */
 #include "scapi_json.h"
 
+static void
+sj_add_backend_data(struct sj_model *model, struct blob_buf *buf,
+		    struct blob_attr *cur)
+{
+	void *c;
+
+	switch (blobmsg_type(cur)) {
+	case BLOBMSG_TYPE_ARRAY:
+		c = blobmsg_open_array(buf, blobmsg_name(cur));
+		sj_script_eval_list(model, buf, cur);
+		blobmsg_close_array(buf, c);
+		break;
+	case BLOBMSG_TYPE_TABLE:
+		c = blobmsg_open_table(buf, blobmsg_name(cur));
+		sj_script_eval_list(model, buf, cur);
+		blobmsg_close_table(buf, c);
+		break;
+	case BLOBMSG_TYPE_STRING:
+		json_script_eval_string(&model->script, NULL, buf,
+					blobmsg_name(cur), blobmsg_data(cur));
+		break;
+	default:
+		blobmsg_add_blob(buf, cur);
+		break;
+	}
+}
+
+void
+sj_script_eval_list(struct sj_model *model, struct blob_buf *buf,
+		      struct blob_attr *data)
+{
+	struct blob_attr *cur;
+	int rem;
+
+	blobmsg_for_each_attr(cur, data, rem) {
+		if (!blobmsg_check_attr(cur, false))
+			continue;
+
+		sj_add_backend_data(model, buf, cur);
+	}
+}
+
+
 static struct blob_attr *
 __sj_filter_json_table(struct blob_attr *data, const char *key)
 {

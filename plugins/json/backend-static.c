@@ -11,8 +11,6 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  */
-#include <libubox/blobmsg_json.h>
-#include <ctype.h>
 #include "scapi_json.h"
 
 static int static_param_get(struct sj_session *ctx, struct blob_attr *data, struct blob_buf *buf)
