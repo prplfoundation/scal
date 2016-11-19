@@ -31,10 +31,7 @@ struct sj_model {
 	struct json_script_ctx script;
 	struct kvlist script_vars;
 	struct sj_object *script_obj;
-
 	struct avl_tree objects;
-	struct avl_tree filters;
-
 	struct blob_attr *script_data;
 };
 

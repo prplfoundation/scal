@@ -343,7 +343,6 @@ sj_object_attr_add(struct sj_model *ctx, struct blob_attr *attr)
 void sj_model_init(struct sj_model *m)
 {
 	avl_init(&m->objects, avl_strcmp, false, NULL);
-	avl_init(&m->filters, avl_strcmp, false, NULL);
 }
 
 int sj_model_load_json(struct sj_model *ctx, const char *path)
