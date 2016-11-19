@@ -314,6 +314,7 @@ scald_model_new(const char *name)
 {
 	struct scald_model *m;
 	char *name_buf;
+	int ret;
 
 	m = calloc_a(sizeof(*m), &name_buf, 4 /* scald. */ + strlen(name) + 1);
 	if (!m)
@@ -327,7 +328,9 @@ scald_model_new(const char *name)
 	m->ubus.methods = model_object_methods;
 	m->ubus.n_methods = ARRAY_SIZE(model_object_methods);
 
-	if (ubus_add_object(ubus_ctx, &m->ubus)) {
+	ret = ubus_add_object(ubus_ctx, &m->ubus);
+	if (ret) {
+		fprintf(stderr, "Failed to register ubus object %s: %s\n", m->ubus.name, ubus_strerror(ret));
 		free(m);
 		return NULL;
 	}
