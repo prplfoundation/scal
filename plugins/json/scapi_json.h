@@ -97,6 +97,8 @@ static inline struct sj_filter *
 sj_filter_get(const char *name)
 {
 	struct sj_filter *f;
+	if (!name)
+		return NULL;
 	return avl_find_element(&filters, name, f, avl);
 }
 
@@ -104,6 +106,8 @@ static inline struct sj_backend *
 sj_backend_get(const char *name)
 {
 	struct sj_backend *b;
+	if (!name)
+		return NULL;
 	return avl_find_element(&backends, name, b, avl);
 }
 
