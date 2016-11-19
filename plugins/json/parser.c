@@ -88,7 +88,7 @@ sj_param_create(struct sj_model *ctx, const char *name, const char *type,
 		&bdata, blob_pad_len(backend_data),
 		&fdata, (filter && filter_data) ? blob_pad_len(filter_data) : 0);
 
-	par->avl.key = strcpy(name_buf, name);
+	par->avl.key = par->scapi.name = strcpy(name_buf, name);
 	par->backend = sj_backend_get(backend_name);
 	par->type = strcpy(type_buf, type);
 	par->backend_data = memcpy(bdata, backend_data, blob_pad_len(backend_data));
@@ -162,7 +162,7 @@ sj_object_param_create(struct sj_model *ctx, struct sj_object *obj, struct blob_
 	par->obj = obj;
 
 	if (tb[PARAM_READONLY])
-		par->readonly = blobmsg_get_bool(tb[PARAM_READONLY]);
+		par->scapi.readonly = blobmsg_get_bool(tb[PARAM_READONLY]);
 
 	if (tb[PARAM_HIDDEN])
 		par->hidden = blobmsg_get_bool(tb[PARAM_HIDDEN]);

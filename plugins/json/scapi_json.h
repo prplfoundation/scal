@@ -59,7 +59,6 @@ struct sj_object_param {
 	struct sj_filter *filter;
 	struct blob_attr *filter_data;
 
-	bool readonly;
 	bool hidden;
 	bool script;
 

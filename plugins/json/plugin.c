@@ -99,13 +99,30 @@ static int
 sj_api_param_list(struct scapi_ptr *ptr, scapi_param_cb fill,
 		  struct scapi_list_ctx *ctx)
 {
-	return -1;
+	struct sj_object *obj = container_of(ptr->obj, struct sj_object, scapi);
+	struct sj_object_param *par;
+
+	if (obj->scapi.multi_instance != !! obj->get_instance_keys)
+		return 0;
+
+	avl_for_each_element(&obj->params, par, avl)
+		fill(ctx, &par->scapi);
+
+	return 0;
 }
 
 static int
 sj_api_param_get(struct scapi_ptr *ptr, const char *name)
 {
-	return -1;
+	struct sj_object *obj = container_of(ptr->obj, struct sj_object, scapi);
+	struct sj_object_param *par;
+
+	par = avl_find_element(&obj->params, name, par, avl);
+	if (!par)
+		return SC_ERR_NOT_FOUND;
+
+	ptr->par = &par->scapi;
+	return 0;
 }
 
 static int
