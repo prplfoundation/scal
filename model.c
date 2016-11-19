@@ -250,10 +250,12 @@ scald_model_handle_get(struct ubus_context *ctx, struct ubus_object *obj,
 		if (ptr.plugin->param_get(&ptr, name))
 			continue;
 
-		if (ptr.plugin->param_read(&ptr, &b) == 0)
-			ret = 0;
+		ret = ptr.plugin->param_read(&ptr, &b);
+		if (ret)
+			blobmsg_add_u32(&b, "error", ret);
 
 		ubus_send_reply(ctx, req, b.head);
+		ret = 0;
 		break;
 	}
 
