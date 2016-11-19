@@ -1,6 +1,7 @@
 cmake_minimum_required(VERSION 2.8)
 PROJECT(scald_plugins C)
 
+ADD_DEFINITIONS(-fvisibility=hidden)
 IF(APPLE)
 	SET(CMAKE_SHARED_MODULE_CREATE_C_FLAGS "${CMAKE_SHARED_MODULE_CREATE_C_FLAGS} -undefined dynamic_lookup")
 ENDIF(APPLE)

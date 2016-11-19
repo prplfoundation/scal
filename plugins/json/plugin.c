@@ -219,7 +219,8 @@ sj_init_models(struct scapi_plugin *p)
 	}
 }
 
-void scapi_module_init(const struct scapi_cb *_cb)
+void __attribute__ ((visibility ("default")))
+scapi_module_init(const struct scapi_cb *_cb)
 {
 	static struct scapi_plugin plugin = {
 		.name = "json",

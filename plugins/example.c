@@ -189,7 +189,8 @@ static struct scapi_plugin plugin = {
 	.param_write = plugin_param_write,
 };
 
-void scapi_module_init(const struct scapi_cb *_cb)
+void __attribute__ ((visibility ("default")))
+scapi_module_init(const struct scapi_cb *_cb)
 {
 	cb = _cb;
 
