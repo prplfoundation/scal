@@ -160,6 +160,13 @@ sj_backend_add(struct sj_backend *b, const char *name)
 	avl_insert(&backends, &b->avl);
 }
 
+static inline void
+sj_filter_add(struct sj_filter *f, const char *name)
+{
+	f->avl.key = name;
+	avl_insert(&filters, &f->avl);
+}
+
 static inline const char *
 sj_object_name(struct sj_object *obj)
 {
