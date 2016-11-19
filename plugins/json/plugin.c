@@ -18,7 +18,7 @@
 #include <glob.h>
 #include "scapi_json.h"
 
-static const struct scapi_cb *cb;
+const struct scapi_cb *cb;
 AVL_TREE(backends, avl_strcmp, false, NULL);
 AVL_TREE(filters, avl_strcmp, false, NULL);
 

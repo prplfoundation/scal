@@ -23,6 +23,7 @@
 
 #include "../../scapi.h"
 
+extern const struct scapi_cb *cb;
 extern struct avl_tree filters;
 extern struct avl_tree backends;
 struct sj_object;
