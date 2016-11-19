@@ -11,7 +11,7 @@ SET_TARGET_PROPERTIES(example PROPERTIES
 	PREFIX ""
 )
 
-ADD_LIBRARY(json MODULE json/plugin.c json/parser.c)
+ADD_LIBRARY(json MODULE json/plugin.c json/parser.c json/util.c json/backend-file.c)
 SET_TARGET_PROPERTIES(json PROPERTIES
 	OUTPUT_NAME scapi_json
 	PREFIX ""

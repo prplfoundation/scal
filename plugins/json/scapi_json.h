@@ -82,13 +82,33 @@ struct sj_object {
 	void *priv;
 };
 
+struct sj_session {
+	struct list_head list;
+
+	struct sj_backend *backend;
+};
+
 struct sj_backend {
 	struct avl_node avl;
+
+	struct sj_session *default_session;
+
+	struct sj_session *(*session_alloc)(struct sj_backend *ctx);
+	void (*session_free)(struct sj_backend *ctx, struct sj_session *s);
+
+	int (*get)(struct sj_session *s, struct blob_attr *data, struct blob_buf *buf);
+	int (*set)(struct sj_session *s, struct blob_attr *data, const char *value);
+
+	int (*validate)(struct sj_session *s);
+	int (*commit)(struct sj_session *s);
 };
 
 void sj_model_init(struct sj_model *m);
 int sj_model_load_json(struct sj_model *ctx, const char *path);
 void sj_parser_free_data(void);
+
+int sj_filter_json(struct blob_buf *buf, struct blob_attr *data,
+		   const struct blob_attr *key, const char *select);
 
 static inline struct sj_filter *
 sj_filter_get(const char *name)
@@ -106,6 +126,13 @@ sj_backend_get(const char *name)
 	if (!name)
 		return NULL;
 	return avl_find_element(&backends, name, b, avl);
+}
+
+static inline void
+sj_backend_add(struct sj_backend *b, const char *name)
+{
+	b->avl.key = name;
+	avl_insert(&backends, &b->avl);
 }
 
 #endif
