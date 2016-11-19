@@ -162,6 +162,15 @@ enum scald_log_level {
 	SCAPI_LOG_DEBUG,
 };
 
+enum scapi_error {
+	SC_ERR_UNKNOWN = 1,
+	SC_ERR_INVALID_ARGUMENT,
+	SC_ERR_NOT_FOUND,
+	SC_ERR_NOT_SUPPORTED,
+	SC_ERR_INVALID_DATA,
+	__SC_ERR_MAX,
+};
+
 /* scald callbacks that can be called from scapi plugins */
 struct scapi_cb {
 	/* Initialize a plugin */
