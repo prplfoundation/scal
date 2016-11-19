@@ -321,7 +321,7 @@ scald_model_new(const char *name)
 		return NULL;
 
 	sprintf(name_buf, "scald.%s", name);
-	m->scapi.name = m->avl.key = name_buf + 4;
+	m->scapi.name = m->avl.key = strchr(name_buf, '.') + 1;
 
 	m->ubus.name = name_buf;
 	m->ubus.type = &model_object_type;
