@@ -14,6 +14,7 @@ SET_TARGET_PROPERTIES(example PROPERTIES
 ADD_LIBRARY(json MODULE
 	json/plugin.c json/parser.c json/util.c
 	json/backend-file.c json/backend-static.c
+	json/backend-shell.c
 )
 SET_TARGET_PROPERTIES(json PROPERTIES
 	OUTPUT_NAME scapi_json
