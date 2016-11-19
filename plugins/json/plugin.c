@@ -23,39 +23,39 @@ AVL_TREE(backends, avl_strcmp, false, NULL);
 AVL_TREE(filters, avl_strcmp, false, NULL);
 
 static int
-sj_object_get(struct scapi_ptr *ptr)
+sj_api_object_get(struct scapi_ptr *ptr)
 {
 	return -1;
 }
 
 static int
-sj_object_list(struct scapi_ptr *ptr, scapi_object_cb fill,
+sj_api_object_list(struct scapi_ptr *ptr, scapi_object_cb fill,
 		   struct scapi_list_ctx *ctx)
 {
 	return -1;
 }
 
 static int
-sj_param_list(struct scapi_ptr *ptr, scapi_param_cb fill,
+sj_api_param_list(struct scapi_ptr *ptr, scapi_param_cb fill,
 		  struct scapi_list_ctx *ctx)
 {
 	return -1;
 }
 
 static int
-sj_param_get(struct scapi_ptr *ptr, const char *name)
+sj_api_param_get(struct scapi_ptr *ptr, const char *name)
 {
 	return -1;
 }
 
 static int
-sj_param_read(struct scapi_ptr *ptr, struct blob_buf *buf)
+sj_api_param_read(struct scapi_ptr *ptr, struct blob_buf *buf)
 {
 	return -1;
 }
 
 static int
-sj_param_write(struct scapi_ptr *ptr, struct blob_attr *val)
+sj_api_param_write(struct scapi_ptr *ptr, struct blob_attr *val)
 {
 	return -1;
 }
@@ -147,13 +147,13 @@ void scapi_module_init(const struct scapi_cb *_cb)
 	static struct scapi_plugin plugin = {
 		.name = "json",
 
-		.object_list = sj_object_list,
-		.object_get = sj_object_get,
+		.object_list = sj_api_object_list,
+		.object_get = sj_api_object_get,
 
-		.param_list = sj_param_list,
-		.param_get = sj_param_get,
-		.param_read = sj_param_read,
-		.param_write = sj_param_write,
+		.param_list = sj_api_param_list,
+		.param_get = sj_api_param_get,
+		.param_read = sj_api_param_read,
+		.param_write = sj_api_param_write,
 	};
 
 	cb = _cb;
