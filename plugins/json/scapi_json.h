@@ -23,6 +23,7 @@
 
 #include "../../scapi.h"
 
+extern struct scapi_plugin plugin;
 extern const struct scapi_cb *cb;
 extern struct avl_tree filters;
 extern struct avl_tree backends;
@@ -115,6 +116,7 @@ struct sj_backend {
 };
 
 void sj_model_init(struct sj_model *m);
+void sj_model_script_init(struct sj_model *model);
 int sj_model_load_json(struct sj_model *ctx, const char *path);
 void sj_parser_free_data(void);
 

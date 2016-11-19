@@ -344,6 +344,7 @@ void sj_model_init(struct sj_model *m)
 {
 	avl_init(&m->objects, avl_strcmp, false, NULL);
 	kvlist_init(&m->script_vars, kvlist_strlen);
+	sj_model_script_init(m);
 }
 
 int sj_model_load_json(struct sj_model *ctx, const char *path)

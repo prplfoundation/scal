@@ -128,7 +128,17 @@ sj_api_param_get(struct scapi_ptr *ptr, const char *name)
 static int
 sj_api_param_read(struct scapi_ptr *ptr, struct blob_buf *buf)
 {
-	return -1;
+	struct sj_model *model = ptr->model_priv;
+	struct sj_object_param *par = container_of(ptr->par, struct sj_object_param, scapi);
+	struct blob_attr *val;
+	int ret;
+
+	ret = sj_param_get(model, par, &val);
+	if (ret)
+		return ret;
+
+	blobmsg_add_blob(buf, val);
+	return 0;
 }
 
 static int
@@ -219,21 +229,21 @@ sj_init_models(struct scapi_plugin *p)
 	}
 }
 
+struct scapi_plugin plugin = {
+	.name = "json",
+
+	.object_list = sj_api_object_list,
+	.object_get = sj_api_object_get,
+
+	.param_list = sj_api_param_list,
+	.param_get = sj_api_param_get,
+	.param_read = sj_api_param_read,
+	.param_write = sj_api_param_write,
+};
+
 void __attribute__ ((visibility ("default")))
 scapi_module_init(const struct scapi_cb *_cb)
 {
-	static struct scapi_plugin plugin = {
-		.name = "json",
-
-		.object_list = sj_api_object_list,
-		.object_get = sj_api_object_get,
-
-		.param_list = sj_api_param_list,
-		.param_get = sj_api_param_get,
-		.param_read = sj_api_param_read,
-		.param_write = sj_api_param_write,
-	};
-
 	cb = _cb;
 	cb->plugin_add(&plugin);
 	sj_init_models(&plugin);
