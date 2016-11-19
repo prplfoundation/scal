@@ -34,6 +34,7 @@ INCLUDE_DIRECTORIES(${ubus_include_dir})
 FIND_LIBRARY(json_library NAMES json-c)
 FIND_LIBRARY(blobmsg_json_library NAMES blobmsg_json)
 FIND_LIBRARY(ubus_library NAMES ubus)
+FIND_LIBRARY(uci_library NAMES uci)
 FIND_LIBRARY(json_script_library NAMES json_script)
 
-TARGET_LINK_LIBRARIES(json ${json_library} ${blobmsg_json_library} ${ubus_library} ${json_script_library})
+TARGET_LINK_LIBRARIES(json ${json_library} ${blobmsg_json_library} ${ubus_library} ${json_script_library} ${uci_library})
