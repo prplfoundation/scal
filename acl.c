@@ -58,6 +58,7 @@ scald_acl_req_prepare(struct scapi_ptr *ptr)
 	blob_buf_init(&b, 0);
 
 	blobmsg_add_string(&b, "method", ubus_method);
+	blobmsg_add_string(&b, "plugin", ptr->plugin->name);
 	c = blobmsg_open_array(&b, "path");
 	if (ptr->path)
 		blob_put_raw(&b, blobmsg_data(ptr->path), blobmsg_data_len(ptr->path));
