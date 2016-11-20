@@ -141,6 +141,15 @@ sj_api_param_read(struct scapi_ptr *ptr, struct blob_buf *buf)
 	return 0;
 }
 
+static void
+sj_api_param_get_acl(struct scapi_ptr *ptr, struct blob_buf *buf)
+{
+	struct sj_model *model = ptr->model_priv;
+	struct sj_object_param *par = container_of(ptr->par, struct sj_object_param, scapi);
+
+	sj_param_get_backend_info(model, par, buf);
+}
+
 static int
 sj_api_param_write(struct scapi_ptr *ptr, struct blob_attr *val)
 {
@@ -239,6 +248,7 @@ struct scapi_plugin plugin = {
 	.param_get = sj_api_param_get,
 	.param_read = sj_api_param_read,
 	.param_write = sj_api_param_write,
+	.param_get_acl = sj_api_param_get_acl,
 };
 
 void __attribute__ ((visibility ("default")))

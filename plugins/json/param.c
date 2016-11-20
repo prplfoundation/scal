@@ -64,8 +64,9 @@ sj_param_prepare(struct sj_model *model, struct sj_object_param *par,
 	return 0;
 }
 
-int sj_param_get(struct sj_model *model, struct sj_object_param *par,
-		 struct blob_attr **data)
+int
+sj_param_get(struct sj_model *model, struct sj_object_param *par,
+	     struct blob_attr **data)
 {
 	struct sj_backend *be = par->backend;
 	int ret;
@@ -83,7 +84,6 @@ int sj_param_get(struct sj_model *model, struct sj_object_param *par,
 	if (ret)
 		return ret;
 
-
 	blob_buf_init(&result, 0);
 	ret = be->get(be->default_session, blobmsg_data(b.head), &result);
 	if (!blob_len(result.head))
@@ -91,4 +91,23 @@ int sj_param_get(struct sj_model *model, struct sj_object_param *par,
 
 	*data = blob_data(result.head);
 	return ret;
+}
+
+void
+sj_param_get_backend_info(struct sj_model *model, struct sj_object_param *par,
+			  struct blob_buf *buf)
+{
+	struct sj_backend *be = par->backend;
+	struct blob_attr *data;
+
+	if (!be)
+		return;
+
+	if (sj_param_prepare(model, par, &b))
+		return;
+
+	data = blobmsg_data(b.head);
+	blobmsg_add_string(buf, "backend", be->avl.key);
+	blobmsg_add_field(buf, blobmsg_type(data), "backend_data",
+			  blobmsg_data(data), blobmsg_data_len(data));
 }
