@@ -163,6 +163,8 @@ sj_object_param_create(struct sj_model *ctx, struct sj_object *obj, struct blob_
 
 	if (tb[PARAM_READONLY])
 		par->scapi.readonly = blobmsg_get_bool(tb[PARAM_READONLY]);
+	if (par->backend && !par->backend->set)
+		par->scapi.readonly = true;
 
 	if (tb[PARAM_HIDDEN])
 		par->hidden = blobmsg_get_bool(tb[PARAM_HIDDEN]);
