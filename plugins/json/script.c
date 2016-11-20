@@ -81,8 +81,13 @@ sj_handle_script_var(struct json_script_ctx *script, const char *name,
 		     struct blob_attr *v)
 {
 	struct sj_model *ctx = container_of(script, struct sj_model, script);
+	const char *val;
 
-	return kvlist_get(&ctx->script_vars, name);
+	val = kvlist_get(&ctx->script_vars, name);
+	if (val)
+		return val;
+
+	return cb->option_get(name);
 }
 
 void sj_model_script_init(struct sj_model *model)
