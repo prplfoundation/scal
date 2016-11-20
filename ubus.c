@@ -64,5 +64,7 @@ int scald_ubus_init(const char *path)
 
 	ubus_add_uloop(ubus_ctx);
 	ubus_add_object(ubus_ctx, &main_object);
+	scald_acl_init(ubus_ctx);
+
 	return 0;
 }

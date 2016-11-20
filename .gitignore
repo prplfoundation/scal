@@ -7,4 +7,5 @@ CMakeFiles
 *.dylib
 install_manifest.txt
 scald
+test-acld
 ref

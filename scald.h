@@ -39,4 +39,12 @@ struct scald_model *scald_model_new(const char *name);
 void scald_status_models_dump(struct blob_buf *buf);
 void scald_plugin_add_option(char *arg);
 
+void scald_acl_init(struct ubus_context *ctx);
+
+void scald_acl_req_init(struct ubus_request_data *req, const char *method);
+void scald_acl_req_prepare(struct scapi_ptr *ptr);
+void scald_acl_req_add_param(struct scapi_ptr *ptr);
+int scald_acl_req_check(struct scapi_ptr *ptr);
+void scald_acl_req_done(void);
+
 #endif

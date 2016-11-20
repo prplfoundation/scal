@@ -85,6 +85,15 @@ struct scapi_plugin {
 	int (*object_get)(struct scapi_ptr *ptr);
 
 	/*
+	 * Fetch extra object attributes to pass to the ACL check daemon
+	 *
+	 * ptr: reference to plugin, data model and object
+	 *      (provided by .object_list or .object_get)
+	 * buf: blob_buf to store the values.
+	 */
+	void (*object_get_acl)(struct scapi_ptr *ptr, struct blob_buf *buf);
+
+	/*
 	 * List parameters belonging to an object
 	 *
 	 * ptr: reference to plugin, data model and object
@@ -116,6 +125,16 @@ struct scapi_plugin {
 	 * param_list or free
 	 */
 	int (*param_get)(struct scapi_ptr *ptr, const char *name);
+
+	/*
+	 * Fetch extra parameter attributes to pass to the ACL check daemon
+	 *
+	 * ptr: reference to plugin, data model, object
+	 *      (provided by .object_list or .object_get) and parameter
+	 *      (provided by .param_list or .param_get)
+	 * buf: blob_buf to store the values.
+	 */
+	void (*param_get_acl)(struct scapi_ptr *ptr, struct blob_buf *buf);
 
 	/*
 	 * Get a parameter value
@@ -170,6 +189,7 @@ enum scapi_error {
 	SC_ERR_INVALID_DATA,
 	SC_ERR_NO_DATA,
 	SC_ERR_UPDATE_FAILED,
+	SC_ERR_ACCESS_DENIED,
 	__SC_ERR_MAX,
 };
 

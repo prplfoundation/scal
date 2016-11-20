@@ -13,8 +13,12 @@ INCLUDE_DIRECTORIES(${ubus_include_dir})
 
 FIND_LIBRARY(ubox_library NAMES ubox)
 FIND_LIBRARY(ubus_library NAMES ubus)
+FIND_LIBRARY(blobmsg_json_library NAMES blobmsg_json)
 
-ADD_EXECUTABLE(scald scald.c ubus.c plugin.c model.c)
+ADD_EXECUTABLE(scald scald.c ubus.c plugin.c model.c acl.c)
 TARGET_LINK_LIBRARIES(scald ubus ${ubox_library} ${ubus_library} dl)
+
+ADD_EXECUTABLE(test-acld test-acld.c)
+TARGET_LINK_LIBRARIES(test-acld ${ubox_library} ${ubus_library} ${blobmsg_json_library})
 
 ADD_SUBDIRECTORY(plugins)
