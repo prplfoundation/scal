@@ -1,0 +1,28 @@
+{ "objects": [
+	[ "DeviceInfo", {
+		"backend": "file",
+		"backend_data": {
+			"type": "json",
+			"file": "%device_file%",
+			"key": "%parameter%"
+		},
+		"default_type": "string",
+		"parameters": {
+			"DeviceLog": {
+				"backend": "shell",
+				"backend_data": {
+					"command": [ "logread" ],
+					"maxlen": 32768
+				}
+			},
+			"SoftwareVersion": {},
+			"Manufacturer": {},
+			"ManufacturerOUI": {},
+			"ModelName": {},
+			"Description": {},
+			"ProductClass": {},
+			"SerialNumber": {},
+			"HardwareVersion": {}
+		}
+	}]
+]}
