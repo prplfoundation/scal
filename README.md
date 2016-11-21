@@ -48,3 +48,26 @@ Object: scald.<datamodel>
     Parameter name is provided as a string in the "name" attribute, the value
     is provided as a string in the "value" attribute
     Example: ubus call scald.tr-181 set '{"path": [ "Device", "ManagementServer" ], "name": "Username", "value": "baz" }'
+
+
+Object: scald.acl
+  This object is used to allow an external daemon to perform ACL checks for
+  incoming requests. After subscribing to this object, the ACL daemon receives
+  requests as notifications. If the ACL daemon returns a non-zero status code,
+  the incoming request will be refused.
+  Example message:
+    {"method":"list","plugin":"json","ubus":{"user":"root","group":"wheel"},"path":["DeviceInfo"]}
+
+  Plugins can add arbitrary data to this message to allow ACL filtering to be
+  done both before and after data model translation.
+
+  - method:
+    Name of the ubus method called on scald.<datamodel>
+  - plugin:
+    Name of the plugin providing the object/parameter being accessed
+  - ubus:
+    ACL data from the ubus client that issued the request
+  - path:
+    Path to the object
+  - param:
+    Name of the requested parameter
