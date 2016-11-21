@@ -59,6 +59,14 @@ scald_acl_req_prepare(struct scapi_ptr *ptr)
 
 	blobmsg_add_string(&b, "method", ubus_method);
 	blobmsg_add_string(&b, "plugin", ptr->plugin->name);
+
+	c = blobmsg_open_table(&b, "ubus");
+	if (ubus_req->acl.user)
+		blobmsg_add_string(&b, "user", ubus_req->acl.user);
+	if (ubus_req->acl.group)
+		blobmsg_add_string(&b, "group", ubus_req->acl.group);
+	blobmsg_close_array(&b, c);
+
 	c = blobmsg_open_array(&b, "path");
 	if (ptr->path)
 		blob_put_raw(&b, blobmsg_data(ptr->path), blobmsg_data_len(ptr->path));
