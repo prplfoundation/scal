@@ -51,7 +51,17 @@ static int
 sj_param_prepare(struct sj_model *model, struct sj_object_param *par,
 		 struct blob_buf *buf)
 {
+	struct sj_backend *be = par->backend;
 	void *c;
+
+	if (!be)
+		return SC_ERR_NOT_SUPPORTED;
+
+	if (!be->default_session && be->session_alloc) {
+		be->default_session = be->session_alloc(be);
+		if (!be->default_session)
+			return SC_ERR_UNKNOWN;
+	}
 
 	if (!par->script)
 		sj_param_prepare_script(model, par);
@@ -70,15 +80,6 @@ sj_param_get(struct sj_model *model, struct sj_object_param *par,
 {
 	struct sj_backend *be = par->backend;
 	int ret;
-
-	if (!be)
-		return SC_ERR_NOT_SUPPORTED;
-
-	if (!be->default_session && be->session_alloc) {
-		be->default_session = be->session_alloc(be);
-		if (!be->default_session)
-			return SC_ERR_UNKNOWN;
-	}
 
 	ret = sj_param_prepare(model, par, &b);
 	if (ret)
