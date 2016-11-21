@@ -134,6 +134,9 @@ int sj_object_get_from_path(struct sj_model *model, struct blob_attr *path,
 
 int sj_param_get(struct sj_model *model, struct sj_object_param *par,
 		 struct blob_attr **data);
+int sj_param_set(struct sj_model *model, struct sj_object_param *par,
+		 struct blob_attr *data);
+
 void sj_param_get_backend_info(struct sj_model *model, struct sj_object_param *par,
 			       struct blob_buf *buf);
 

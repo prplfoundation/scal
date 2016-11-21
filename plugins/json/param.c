@@ -94,6 +94,24 @@ sj_param_get(struct sj_model *model, struct sj_object_param *par,
 	return ret;
 }
 
+int
+sj_param_set(struct sj_model *model, struct sj_object_param *par,
+	     struct blob_attr *data)
+{
+	struct sj_backend *be = par->backend;
+	int ret;
+
+	ret = sj_param_prepare(model, par, &b);
+	if (ret)
+		return ret;
+
+	if (blobmsg_type(data) != BLOBMSG_TYPE_STRING)
+		return SC_ERR_INVALID_ARGUMENT;
+
+	return be->set(be->default_session, blobmsg_data(b.head),
+		       blobmsg_get_string(data));
+}
+
 void
 sj_param_get_backend_info(struct sj_model *model, struct sj_object_param *par,
 			  struct blob_buf *buf)

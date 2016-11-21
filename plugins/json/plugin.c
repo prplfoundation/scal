@@ -153,7 +153,10 @@ sj_api_param_get_acl(struct scapi_ptr *ptr, struct blob_buf *buf)
 static int
 sj_api_param_write(struct scapi_ptr *ptr, struct blob_attr *val)
 {
-	return -1;
+	struct sj_model *model = ptr->model_priv;
+	struct sj_object_param *par = container_of(ptr->par, struct sj_object_param, scapi);
+
+	return sj_param_set(model, par, val);
 }
 
 static void
