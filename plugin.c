@@ -34,6 +34,9 @@ scald_model_get(const char *name)
 		return m;
 
 	m = scald_model_new(name);
+	if (!m)
+		return NULL;
+
 	avl_insert(&models, &m->avl);
 
 	return m;
