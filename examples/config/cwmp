@@ -1,0 +1,11 @@
+
+config cwmp 'foo'
+	option url 'http://acs:8080/openacs/acs'
+	option periodic_enabled '1'
+	option connection_port '8080'
+	option local_username '_user'
+	option local_password '_password'
+	option username 'admin'
+	option password 'openacs'
+	option periodic_interval '20'
+

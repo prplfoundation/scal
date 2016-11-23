@@ -1,0 +1,57 @@
+{ "objects": [
+	[ "ManagementServer", {
+		"backend": "uci",
+		"backend_data": {
+			"package": "cwmp",
+			"section": "@cwmp[0]"
+		},
+		"default_type": "string",
+		"parameters": {
+			"URL": {
+				"backend_data": {
+					"option": "url"
+				}
+			},
+			"Username": {
+				"backend_data": {
+					"option": "username"
+				}
+			},
+			"Password": {
+				"backend_data": {
+					"option": "password"
+				},
+				"hidden": true
+			},
+			"PeriodicInformEnable": {
+				"type": "boolean",
+				"backend_data": {
+					"option": "periodic_enabled"
+				}
+			},
+			"PeriodicInformInterval": {
+				"type": "unsignedInt",
+				"backend_data": {
+					"option": "periodic_interval"
+				}
+			},
+			"ConnectionRequestURL": {
+				"backend": "static",
+				"backend_data": {
+					"value": "http://%cwmp_local_addr%/connreq"
+				}
+			},
+			"ConnectionRequestUsername": {
+				"backend_data": {
+					"option": "local_username"
+				}
+			},
+			"ConnectionRequestPassword": {
+				"backend_data": {
+					"option": "local_password"
+				},
+				"hidden": true
+			}
+		}
+	}]
+]}
