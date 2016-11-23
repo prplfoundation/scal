@@ -158,6 +158,20 @@ struct scapi_plugin {
 	 * val: new value
 	 */
 	int (*param_write)(struct scapi_ptr *ptr, struct blob_attr *val);
+
+	/*
+	 * Validate all changes
+	 *
+	 * ptr: reference to plugin, data model
+	 */
+	int (*validate)(struct scapi_ptr *ptr);
+
+	/*
+	 * Commit all changes
+	 *
+	 * ptr: reference to plugin, data model
+	 */
+	int (*commit)(struct scapi_ptr *ptr);
 };
 
 struct scapi_model {

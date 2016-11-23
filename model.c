@@ -104,6 +104,7 @@ scald_model_handle_list_cb(struct scapi_list_ctx *ctx, struct scapi_object *obj)
 
 	ctx->ptr->obj = obj;
 	scald_acl_req_prepare(ctx->ptr);
+	scald_acl_req_add_object(ctx->ptr);
 	if (scald_acl_req_check(ctx->ptr))
 		return;
 
@@ -164,6 +165,7 @@ scald_model_handle_param_cb(struct scapi_list_ctx *ctx, struct scapi_parameter *
 
 	ctx->ptr->par = par;
 	scald_acl_req_prepare(ctx->ptr);
+	scald_acl_req_add_object(ctx->ptr);
 	scald_acl_req_add_param(ctx->ptr);
 	if (scald_acl_req_check(ctx->ptr))
 		return;
@@ -270,6 +272,7 @@ scald_model_handle_get(struct ubus_context *ctx, struct ubus_object *obj,
 			continue;
 
 		scald_acl_req_prepare(&ptr);
+		scald_acl_req_add_object(&ptr);
 		scald_acl_req_add_param(&ptr);
 		if (scald_acl_req_check(&ptr))
 			ret = SC_ERR_ACCESS_DENIED;
@@ -321,6 +324,7 @@ scald_model_handle_set(struct ubus_context *ctx, struct ubus_object *obj,
 			return UBUS_STATUS_PERMISSION_DENIED;
 
 		scald_acl_req_prepare(&ptr);
+		scald_acl_req_add_object(&ptr);
 		scald_acl_req_add_param(&ptr);
 		if (scald_acl_req_check(&ptr))
 			ret = SC_ERR_ACCESS_DENIED;
@@ -342,11 +346,61 @@ scald_model_handle_set(struct ubus_context *ctx, struct ubus_object *obj,
 	return ret;
 }
 
+static int
+scald_model_commit_validate(struct ubus_context *ctx, struct ubus_object *obj,
+			    struct ubus_request_data *req, const char *method,
+			    struct blob_attr *msg)
+{
+	struct scald_model *m = container_of(obj, struct scald_model, ubus);
+	struct scapi_ptr ptr = { .model = &m->scapi };
+	struct scapi_list_ctx lctx;
+	void *c = NULL;
+	int ret = UBUS_STATUS_NOT_FOUND;
+	int (*cb)(struct scapi_ptr *ptr) = NULL;
+
+	scald_acl_req_init(req, method);
+
+	blob_buf_init(&b, 0);
+	scald_model_iterate_plugins(&lctx, &ptr) {
+		if (!strcmp(method, "validate"))
+			cb = ptr.plugin->validate;
+		else if (!strcmp(method, "commit"))
+			cb = ptr.plugin->commit;
+		if (!cb)
+			continue;
+
+		scald_acl_req_prepare(&ptr);
+		if (scald_acl_req_check(&ptr))
+			ret = SC_ERR_ACCESS_DENIED;
+		else
+			ret = cb(&ptr);
+
+		if (!ret)
+			continue;
+
+		if (!c)
+			c = blobmsg_open_table(&b, "error");
+
+		blobmsg_add_u32(&b, ptr.plugin->name, ret);
+	}
+
+	if (c) {
+		blobmsg_close_table(&b, c);
+		ubus_send_reply(ctx, req, b.head);
+	}
+
+	scald_acl_req_done();
+
+	return 0;
+}
+
 static struct ubus_method model_object_methods[] = {
 	UBUS_METHOD_MASK("list", scald_model_handle_list, obj_policy, M_OBJ_MASK),
 	UBUS_METHOD_MASK("info", scald_model_handle_info, obj_policy, M_OBJ_MASK),
 	UBUS_METHOD_MASK("get", scald_model_handle_get, obj_policy, M_GET_MASK),
 	UBUS_METHOD_MASK("set", scald_model_handle_set, obj_policy, M_SET_MASK),
+	UBUS_METHOD_NOARG("validate", scald_model_commit_validate),
+	UBUS_METHOD_NOARG("commit", scald_model_commit_validate),
 };
 
 static struct ubus_object_type model_object_type =

@@ -66,6 +66,15 @@ scald_acl_req_prepare(struct scapi_ptr *ptr)
 	if (ubus_req->acl.group)
 		blobmsg_add_string(&b, "group", ubus_req->acl.group);
 	blobmsg_close_array(&b, c);
+}
+
+void
+scald_acl_req_add_object(struct scapi_ptr *ptr)
+{
+	void *c;
+
+	if (!acl_object.has_subscribers)
+		return;
 
 	c = blobmsg_open_array(&b, "path");
 	if (ptr->path)
