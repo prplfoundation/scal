@@ -108,6 +108,7 @@ sj_param_set(struct sj_model *model, struct sj_object_param *par,
 	if (blobmsg_type(data) != BLOBMSG_TYPE_STRING)
 		return SC_ERR_INVALID_ARGUMENT;
 
+	be->default_session->changed = true;
 	return be->set(be->default_session, blobmsg_data(b.head),
 		       blobmsg_get_string(data));
 }

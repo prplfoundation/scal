@@ -98,6 +98,7 @@ struct sj_session {
 	struct list_head list;
 
 	struct sj_backend *backend;
+	bool changed;
 };
 
 struct sj_backend {

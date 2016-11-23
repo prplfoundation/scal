@@ -159,6 +159,61 @@ sj_api_param_write(struct scapi_ptr *ptr, struct blob_attr *val)
 	return sj_param_set(model, par, val);
 }
 
+static int
+sj_api_validate(struct scapi_ptr *ptr)
+{
+	struct sj_backend *be;
+
+	avl_for_each_element(&backends, be, avl) {
+		struct sj_session *s = be->default_session;
+		int ret;
+
+		if (!be->validate)
+			continue;
+
+		if (!s)
+			continue;
+
+		if (!s->changed)
+			continue;
+
+		ret = be->validate(s);
+		if (ret)
+			return ret;
+	}
+
+	return 0;
+}
+
+static int
+sj_api_commit(struct scapi_ptr *ptr)
+{
+	struct sj_backend *be;
+	int ret = 0;
+
+	avl_for_each_element(&backends, be, avl) {
+		struct sj_session *s = be->default_session;
+		int r;
+
+		if (!be->commit)
+			continue;
+
+		if (!s)
+			continue;
+
+		if (!s->changed)
+			continue;
+
+		s->changed = false;
+		r = be->commit(s);
+		if (r)
+			ret = r;
+	}
+
+	return ret;
+}
+
+
 static void
 sj_load_file(struct scapi_plugin *p, struct sj_model *sj, const char *file)
 {
@@ -252,6 +307,9 @@ struct scapi_plugin plugin = {
 	.param_read = sj_api_param_read,
 	.param_write = sj_api_param_write,
 	.param_get_acl = sj_api_param_get_acl,
+
+	.validate = sj_api_validate,
+	.commit = sj_api_commit,
 };
 
 void __attribute__ ((visibility ("default")))
