@@ -1,0 +1,123 @@
+#!/bin/sh
+if [ -f /usr/share/libubox/jshn.sh ]; then
+	. /usr/share/libubox/jshn.sh
+else
+	. /usr/local/share/libubox/jshn.sh
+fi
+
+set_path() {
+	json_init
+	json_add_array path
+	cur="$1"
+	while [ "${cur%%${sep}*}" != "$cur" ]; do
+		[ -n "${cur%%${sep}*}" ] && json_add_string "" "${cur%%${sep}*}"
+		cur="${cur#*${sep}}"
+	done
+	[ -n "$cur" ] && json_add_string "" "$cur"
+	json_close_array path
+}
+
+ubus_call() {
+	local cmd="$1"
+	local data="$(json_dump)"
+	local data="$(ubus call "scald.$model" $cmd "$data")"
+	if [ -n "$data" ]; then
+		json_load "$data"
+	else
+		json_init
+	fi
+}
+
+do_info() {
+	set_path "$1"
+	ubus_call info
+	json_get_keys parameters parameters
+	for par in $parameters; do
+		echo "${indent}$par"
+	done
+}
+
+list_entry() {
+	set_path "$1"
+	ubus_call list
+	json_get_values objs objects
+	for obj in $objs; do
+		echo "$indent$obj:"
+		indent="  $indent"
+		do_info "${entry}${sep}${obj}"
+		[ "$recursive" ] && list_entry "${entry}${sep}${obj}"
+		indent="$cur_indent"
+	done
+}
+
+cmd_list() {
+	[ -n "$1" ] || list_entry ""
+	while [ -n "$1" ]; do
+		list_entry "$1"
+		shift
+	done
+}
+
+cmd_get() {
+	local path="$1"
+	local param="$2"
+
+	[ -n "$path" -a -n "$param" ] || usage
+
+	set_path "$path"
+	json_add_string name "$param"
+	ubus_call get
+	json_get_var val "value"
+	echo "$val"
+}
+
+cmd_set() {
+	local path="$1"
+	local param="$2"
+	local value="$3"
+
+	[ -n "$path" -a -n "$param" ] || usage
+
+	set_path "$path"
+	json_add_string name "$param"
+	json_add_string value "$value"
+	ubus_call set
+}
+
+usage() {
+	cat <<EOF
+Usage: $0 [<options>] <command> [<arguments>]
+
+Options:
+	-r:					Recursively list objects
+	-s <char>:				Use <char> as object separator
+						(default: '.')
+
+Commands:
+	list <model> [<object>...]		List objects
+	get <model> <object> <param>		Get a parameter value
+	set <model> <object> <param> <value>	Set a parameter value
+
+EOF
+	exit 1
+}
+
+indent=
+sep="."
+while [ -n "$1" ]; do
+	command="$1"; shift
+	case "$command" in
+		-r) recursive=1;;
+		-s) sep="$1"; shift;;
+		-*) echo "Unknown option: $command"; break;;
+		list|get|set)
+			model="$1"; shift
+			[ -n "$model" ] || usage
+			"cmd_$command" "$@"
+			exit
+			;;
+		*) break;;
+	esac
+done
+
+usage
