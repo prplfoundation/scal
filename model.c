@@ -302,7 +302,7 @@ scald_model_handle_set(struct ubus_context *ctx, struct ubus_object *obj,
 	struct blob_attr *tb[__M_OBJ_MAX];
 	struct scapi_list_ctx lctx;
 	const char *name;
-	int ret = UBUS_STATUS_NOT_FOUND;
+	int ret = SC_ERR_NOT_FOUND;
 
 	blobmsg_parse(obj_policy, __M_OBJ_MAX, tb, blob_data(msg), blob_len(msg));
 
@@ -320,30 +320,32 @@ scald_model_handle_set(struct ubus_context *ctx, struct ubus_object *obj,
 		if (ptr.plugin->param_get(&ptr, name))
 			continue;
 
-		if (ptr.par->readonly)
-			return UBUS_STATUS_PERMISSION_DENIED;
+		if (ptr.par->readonly) {
+			ret = SC_ERR_ACCESS_DENIED;
+			break;
+		}
 
 		scald_acl_req_prepare(&ptr);
 		scald_acl_req_add_object(&ptr);
 		scald_acl_req_add_param(&ptr);
-		if (scald_acl_req_check(&ptr))
+		if (scald_acl_req_check(&ptr)) {
 			ret = SC_ERR_ACCESS_DENIED;
-		else
-			ret = ptr.plugin->param_write(&ptr, tb[M_OBJ_VALUE]);
-
-		if (ret) {
-			blob_buf_init(&b, 0);
-			blobmsg_add_u32(&b, "error", ret);
-			ubus_send_reply(ctx, req, b.head);
+			break;
 		}
 
-		ret = 0;
+		ret = ptr.plugin->param_write(&ptr, tb[M_OBJ_VALUE]);
 		break;
+	}
+
+	if (ret) {
+		blob_buf_init(&b, 0);
+		blobmsg_add_u32(&b, "error", ret);
+		ubus_send_reply(ctx, req, b.head);
 	}
 
 	scald_acl_req_done();
 
-	return ret;
+	return 0;
 }
 
 static int
@@ -355,7 +357,7 @@ scald_model_commit_validate(struct ubus_context *ctx, struct ubus_object *obj,
 	struct scapi_ptr ptr = { .model = &m->scapi };
 	struct scapi_list_ctx lctx;
 	void *c = NULL;
-	int ret = UBUS_STATUS_NOT_FOUND;
+	int ret = SC_ERR_NOT_FOUND;
 	int (*cb)(struct scapi_ptr *ptr) = NULL;
 
 	scald_acl_req_init(req, method);
