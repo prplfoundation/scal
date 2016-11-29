@@ -97,6 +97,38 @@ static const struct blobmsg_policy obj_policy[__M_OBJ_MAX] = {
 #define M_GET_MASK (M_OBJ_MASK | (1 << M_OBJ_NAME))
 #define M_SET_MASK (M_GET_MASK | (1 << M_OBJ_VALUE))
 
+
+static const char *error_strings[] = {
+	"OK",
+	[SC_ERR_UNKNOWN] = "Unknown error",
+	[SC_ERR_INVALID_ARGUMENT] = "Invalid argument",
+	[SC_ERR_NOT_FOUND] = "Entry not found",
+	[SC_ERR_NOT_SUPPORTED] = "Operation not supported",
+	[SC_ERR_INVALID_DATA] = "Invalid data",
+	[SC_ERR_NO_DATA] = "No data returned",
+	[SC_ERR_UPDATE_FAILED] = "Update failed",
+	[SC_ERR_ACCESS_DENIED] = "Access denied",
+};
+
+static void
+scald_report_error(struct blob_buf *buf, const char *name, int code)
+{
+	const char *str = NULL;
+	void *c;
+
+	BUILD_BUG_ON(ARRAY_SIZE(error_strings) != __SC_ERR_MAX);
+
+	if (code >= ARRAY_SIZE(error_strings))
+		str = error_strings[code];
+	else
+		str = error_strings[SC_ERR_UNKNOWN];
+
+	c = blobmsg_open_table(buf, name);
+	blobmsg_add_u32(buf, "code", code);
+	blobmsg_add_string(buf, "message", error_strings[code]);
+	blobmsg_close_table(&b, c);
+}
+
 static void
 scald_model_handle_list_cb(struct scapi_list_ctx *ctx, struct scapi_object *obj)
 {
@@ -280,7 +312,7 @@ scald_model_handle_get(struct ubus_context *ctx, struct ubus_object *obj,
 			ret = ptr.plugin->param_read(&ptr, &b);
 
 		if (ret)
-			blobmsg_add_u32(&b, "error", ret);
+			scald_report_error(&b, "error", ret);
 
 		ubus_send_reply(ctx, req, b.head);
 		ret = 0;
@@ -339,7 +371,7 @@ scald_model_handle_set(struct ubus_context *ctx, struct ubus_object *obj,
 
 	if (ret) {
 		blob_buf_init(&b, 0);
-		blobmsg_add_u32(&b, "error", ret);
+		scald_report_error(&b, "error", ret);
 		ubus_send_reply(ctx, req, b.head);
 	}
 
@@ -383,7 +415,7 @@ scald_model_commit_validate(struct ubus_context *ctx, struct ubus_object *obj,
 		if (!c)
 			c = blobmsg_open_table(&b, "error");
 
-		blobmsg_add_u32(&b, ptr.plugin->name, ret);
+		scald_report_error(&b, ptr.plugin->name, ret);
 	}
 
 	if (c) {
