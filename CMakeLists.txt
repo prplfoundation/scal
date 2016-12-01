@@ -21,4 +21,8 @@ TARGET_LINK_LIBRARIES(scald ubus ${ubox_library} ${ubus_library} dl)
 ADD_EXECUTABLE(test-acld test-acld.c)
 TARGET_LINK_LIBRARIES(test-acld ${ubox_library} ${ubus_library} ${blobmsg_json_library})
 
+INSTALL(TARGETS scald
+	RUNTIME DESTINATION sbin
+)
+
 ADD_SUBDIRECTORY(plugins)

@@ -40,3 +40,7 @@ FIND_LIBRARY(uci_library NAMES uci)
 FIND_LIBRARY(json_script_library NAMES json_script)
 
 TARGET_LINK_LIBRARIES(json ${json_library} ${blobmsg_json_library} ${ubus_library} ${json_script_library} ${uci_library})
+
+INSTALL(TARGETS json
+	LIBRARY DESTINATION lib/scald
+)
