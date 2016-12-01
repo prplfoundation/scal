@@ -125,7 +125,7 @@ scald_report_error(struct blob_buf *buf, const char *name, int code)
 
 	c = blobmsg_open_table(buf, name);
 	blobmsg_add_u32(buf, "code", code);
-	blobmsg_add_string(buf, "message", error_strings[code]);
+	blobmsg_add_string(buf, "message", str);
 	blobmsg_close_table(&b, c);
 }
 
