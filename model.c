@@ -447,7 +447,7 @@ scald_model_new(const char *name)
 	char *name_buf;
 	int ret;
 
-	m = calloc_a(sizeof(*m), &name_buf, 4 /* scald. */ + strlen(name) + 1);
+	m = calloc_a(sizeof(*m), &name_buf, 6 /* scald. */ + strlen(name) + 1);
 	if (!m)
 		return NULL;
 
