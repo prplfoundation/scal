@@ -53,6 +53,7 @@ static void usage(const char *progname)
 	fprintf(stderr, "Usage: %s [options]\n"
 		"Options:\n"
 		"	-s <path>:		Path to the ubus socket\n"
+		"	-u <prefix>:		Prefix for ubus objects (default: "SCALD_UBUS_PREFIX")\n"
 		"	-p <path>:		Path to plugins (default: %s)\n"
 		"	-x <name>[=<val>]:	Set an option used by a plugin\n"
 		"\n", progname, SCALD_PLUGIN_PATH);
@@ -66,10 +67,13 @@ static int scald_init(int argc, char **argv)
 
 	uloop_init();
 
-	while ((ch = getopt(argc, argv, "s:p:x:")) != -1) {
+	while ((ch = getopt(argc, argv, "s:u:p:x:")) != -1) {
 		switch (ch) {
 		case 's':
 			socket = optarg;
+			break;
+		case 'u':
+			ubus_prefix = optarg;
 			break;
 		case 'p':
 			plugin_path = optarg;

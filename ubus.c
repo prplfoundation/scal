@@ -18,6 +18,7 @@
 #include <libubox/blobmsg.h>
 #include "scald.h"
 
+const char *ubus_prefix = SCALD_UBUS_PREFIX;
 struct ubus_context *ubus_ctx;
 static const char *ubus_path;
 static struct blob_buf b;
@@ -47,7 +48,6 @@ static struct ubus_object_type main_object_type =
 	UBUS_OBJECT_TYPE("scald", main_object_methods);
 
 static struct ubus_object main_object = {
-	.name = "scald",
 	.type = &main_object_type,
 	.methods = main_object_methods,
 	.n_methods = ARRAY_SIZE(main_object_methods),
@@ -55,6 +55,7 @@ static struct ubus_object main_object = {
 
 int scald_ubus_init(const char *path)
 {
+	main_object.name = ubus_prefix;
 	ubus_path = path;
 	ubus_ctx = ubus_connect(path);
 	if (!ubus_ctx) {

@@ -24,10 +24,9 @@ static const char *ubus_method;
 static struct ubus_method acl_object_methods[] = {};
 
 static struct ubus_object_type acl_object_type =
-	UBUS_OBJECT_TYPE("scald", acl_object_methods);
+	UBUS_OBJECT_TYPE("scald.acl", acl_object_methods);
 
 static struct ubus_object acl_object = {
-	.name = "scald.acl",
 	.type = &acl_object_type,
 	.methods = acl_object_methods,
 	.n_methods = ARRAY_SIZE(acl_object_methods),
@@ -135,5 +134,13 @@ scald_acl_req_check(struct scapi_ptr *ptr)
 
 void scald_acl_init(struct ubus_context *ctx)
 {
+	char *name;
+
+	name = malloc(strlen(ubus_prefix) + 5);
+	if (!name)
+		return;
+
+	sprintf(name, "%s.acl", ubus_prefix);
+	acl_object.name = name;
 	ubus_add_object(ctx, &acl_object);
 }

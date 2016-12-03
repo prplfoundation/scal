@@ -447,11 +447,11 @@ scald_model_new(const char *name)
 	char *name_buf;
 	int ret;
 
-	m = calloc_a(sizeof(*m), &name_buf, 6 /* scald. */ + strlen(name) + 1);
+	m = calloc_a(sizeof(*m), &name_buf, strlen(ubus_prefix) + 1 + strlen(name) + 1);
 	if (!m)
 		return NULL;
 
-	sprintf(name_buf, "scald.%s", name);
+	sprintf(name_buf, "%s.%s", ubus_prefix, name);
 	m->scapi.name = m->avl.key = strchr(name_buf, '.') + 1;
 
 	m->ubus.name = name_buf;

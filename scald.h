@@ -17,6 +17,8 @@
 #ifndef __SCALD_H
 #define __SCALD_H
 
+#define SCALD_UBUS_PREFIX	"scald"
+
 #include <libubox/avl.h>
 #include <libubus.h>
 #include "scapi.h"
@@ -31,6 +33,7 @@ struct scald_model {
 	void **plugin_priv;
 };
 
+extern const char *ubus_prefix;
 extern struct ubus_context *ubus_ctx;
 
 int scald_ubus_init(const char *path);
