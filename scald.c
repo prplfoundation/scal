@@ -54,9 +54,9 @@ static void usage(const char *progname)
 		"Options:\n"
 		"	-s <path>:		Path to the ubus socket\n"
 		"	-u <prefix>:		Prefix for ubus objects (default: "SCALD_UBUS_PREFIX")\n"
-		"	-p <path>:		Path to plugins (default: %s)\n"
+		"	-p <path>:		Path to plugins (default: "SCALD_PLUGIN_PATH")\n"
 		"	-x <name>[=<val>]:	Set an option used by a plugin\n"
-		"\n", progname, SCALD_PLUGIN_PATH);
+		"\n", progname);
 }
 
 static int scald_init(int argc, char **argv)
