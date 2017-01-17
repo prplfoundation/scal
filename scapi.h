@@ -19,6 +19,7 @@
 
 #include <libubox/blobmsg.h>
 #include <libubox/list.h>
+#include <libubox/kvlist.h>
 #include <stdbool.h>
 
 struct scapi_model;
@@ -80,9 +81,41 @@ struct scapi_plugin {
 	 *
 	 * Lifetime of the object is controlled by the plugin and
 	 * must be guaranteed until the next call to object_get,
-	 * object_list or free
+	 * object_list or free, or until the object is deleted
 	 */
 	int (*object_get)(struct scapi_ptr *ptr);
+
+	/*
+	 * Fetch defaults for a newly created instance of an object by path
+	 *
+	 * ptr: reference to plugin, data model, path to the parent object
+	 *      of the new instance
+	 * kv: string key/value list to store defaults
+	 */
+	int (*object_get_defaults)(struct scapi_ptr *ptr, struct kvlist *kv);
+
+	/*
+	 * Create a new object instance
+	 *
+	 * ptr: reference to plugin, data model, path to the parent object
+	 * name: name of the new object instance
+	 * values: default values for the object
+	 *
+	 * Must return SC_ERR_NOT_SUPPORTED if the plugin does not support creating
+	 * an object on the specified path and another plugin might.
+	 *
+	 * All other errors are treated as fatal and do not allow deferring to a
+	 * different plugin.
+	 */
+	int (*object_add)(struct scapi_ptr *ptr, const char *name, struct kvlist *values);
+
+	/*
+	 * Delete an object instance
+	 *
+	 * ptr: reference to plugin, data model and object
+	 *      (provided by .object_list or .object_get)
+	 */
+	int (*object_remove)(struct scapi_ptr *ptr);
 
 	/*
 	 * Fetch extra object attributes to pass to the ACL check daemon
@@ -204,6 +237,7 @@ enum scapi_error {
 	SC_ERR_NO_DATA,
 	SC_ERR_UPDATE_FAILED,
 	SC_ERR_ACCESS_DENIED,
+	SC_ERR_ALREADY_EXISTS,
 	__SC_ERR_MAX,
 };
 
