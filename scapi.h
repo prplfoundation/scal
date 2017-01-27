@@ -47,12 +47,12 @@ struct scapi_plugin {
 	const char *name;
 
 	/*
-	 * Free plugin
+	 * Free plugin (unused right now)
 	 */
 	void (*free)(void);
 
 	/*
-	 * Free model
+	 * Free model (unused right now)
 	 */
 	void (*model_free)(struct scapi_model *model, void *priv);
 
@@ -183,14 +183,18 @@ struct scapi_plugin {
 	int (*param_write)(struct scapi_ptr *ptr, struct blob_attr *val);
 
 	/*
-	 * Validate all changes
+	 * Validate all changes (optional)
+	 * If your plugin doesn't have a validation mechanism, this isn't needed.
 	 *
 	 * ptr: reference to plugin, data model
 	 */
 	int (*validate)(struct scapi_ptr *ptr);
 
 	/*
-	 * Commit all changes
+	 * Commit all changes (optional)
+	 * If your plugin directly modifies data without a commit stage,
+	 * this isn't needed
+	 *
 	 *
 	 * ptr: reference to plugin, data model
 	 */
@@ -233,15 +237,28 @@ enum scapi_error {
 
 /* scald callbacks that can be called from scapi plugins */
 struct scapi_cb {
-	/* Initialize a plugin */
+	/*
+	 * Initialize a plugin
+	 * Called inside the plugin to register itself with scald
+	 *
+	 * p: pointer to plugin being registered to scald
+	 */
 	void (*plugin_add) (struct scapi_plugin *p);
 
-	/* Add a new data model (or return an existing one with the same name) */
+	/*
+	 * Add a new data model (or return an existing one with the same name)
+	 *
+	 * p: pointer to the plugin registering the data model
+	 * name: name of the data model
+	 * priv: pointer to an internal plugin. Example: a JSON plugin defined
+	 *       in JSON file would be in p but the overall JSON plugin goes in priv
+	 */
 	struct scapi_model *(*model_add)(struct scapi_plugin *p, const char *name, void *priv);
 
 	/* Get an scald command line option specified via -x */
 	const char *(*option_get)(const char *name);
 
+	/* Log a message from the plugin up to scald */
 	void (*log_msg)(struct scapi_plugin *p, enum scald_log_level level, const char *fmt, ...);
 };
 
