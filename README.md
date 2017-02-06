@@ -8,6 +8,17 @@ This is intended to be used for implementing TR-069, NETCONF and other remote
 management protocols, or even provide an abstraction for a CLI running on
 a router itself.
 
+== Compiling/Installing SCAL ==
+
+To compile SCAL, use these commands:
+
+cmake .
+make
+
+To install:
+
+make install
+
 
 == ubus API ==
 
