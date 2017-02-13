@@ -17,12 +17,22 @@ set_path() {
 	json_close_array path
 }
 
+ubus_status() {
+	local _json_no_warning=1
+	local code message
+
+	json_select error || return 0
+	json_get_vars code message
+	echo "Error $code: $message"
+}
+
 ubus_call() {
 	local cmd="$1"
 	local data="$(json_dump)"
 	local data="$(ubus call "scald.$model" $cmd "$data")"
 	if [ -n "$data" ]; then
 		json_load "$data"
+		ubus_status
 	else
 		json_init
 	fi
