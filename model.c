@@ -99,7 +99,7 @@ static const struct blobmsg_policy obj_policy[__M_OBJ_MAX] = {
 
 
 static const char *error_strings[] = {
-	"OK",
+	[0] = "OK",
 	[SC_ERR_UNKNOWN] = "Unknown error",
 	[SC_ERR_INVALID_ARGUMENT] = "Invalid argument",
 	[SC_ERR_NOT_FOUND] = "Entry not found",
@@ -119,9 +119,9 @@ scald_report_error(struct blob_buf *buf, const char *name, int code)
 	BUILD_BUG_ON(ARRAY_SIZE(error_strings) != __SC_ERR_MAX);
 
 	if (code >= ARRAY_SIZE(error_strings))
-		str = error_strings[code];
-	else
 		str = error_strings[SC_ERR_UNKNOWN];
+	else
+		str = error_strings[code];
 
 	c = blobmsg_open_table(buf, name);
 	blobmsg_add_u32(buf, "code", code);
