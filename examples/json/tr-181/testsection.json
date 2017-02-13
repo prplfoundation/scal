@@ -1,0 +1,14 @@
+{ "objects": [
+	[ "TestSection", {
+		"get_instance_keys": {
+			"backend": "uci",
+			"backend_data": {
+				"mode": "section",
+				"section_type": "test-section",
+				"package": "test"
+			}
+		},
+		"parameters": {
+		}
+	}]
+]}
