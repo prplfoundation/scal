@@ -94,6 +94,19 @@ cmd_set() {
 	ubus_call set
 }
 
+cmd_add() {
+	local path="$1"
+	local name="$2"
+
+	[ -n "$path" -a -n "$name" ] || usage
+
+	set_path "$path"
+	json_add_string name "$name"
+	json_add_object values
+	json_close_object
+	ubus_call add
+}
+
 usage() {
 	cat <<EOF
 Usage: $0 [<options>] <command> [<arguments>]
@@ -107,6 +120,7 @@ Commands:
 	list <model> [<object>...]		List objects
 	get <model> <object> <param>		Get a parameter value
 	set <model> <object> <param> <value>	Set a parameter value
+	add <model> <object> <name>		Add an object instance
 
 EOF
 	exit 1
@@ -120,7 +134,7 @@ while [ -n "$1" ]; do
 		-r) recursive=1;;
 		-s) sep="$1"; shift;;
 		-*) echo "Unknown option: $command"; break;;
-		list|get|set)
+		list|get|set|add)
 			model="$1"; shift
 			[ -n "$model" ] || usage
 			"cmd_$command" "$@"
