@@ -107,6 +107,15 @@ cmd_add() {
 	ubus_call add
 }
 
+cmd_remove() {
+	local path="$1"
+
+	[ -n "$path" ] || usage
+
+	set_path "$path"
+	ubus_call remove
+}
+
 usage() {
 	cat <<EOF
 Usage: $0 [<options>] <command> [<arguments>]
@@ -121,6 +130,7 @@ Commands:
 	get <model> <object> <param>		Get a parameter value
 	set <model> <object> <param> <value>	Set a parameter value
 	add <model> <object> <name>		Add an object instance
+	remove <model> <object>			Remove an object instance
 
 EOF
 	exit 1
@@ -134,7 +144,7 @@ while [ -n "$1" ]; do
 		-r) recursive=1;;
 		-s) sep="$1"; shift;;
 		-*) echo "Unknown option: $command"; break;;
-		list|get|set|add)
+		list|get|set|add|remove)
 			model="$1"; shift
 			[ -n "$model" ] || usage
 			"cmd_$command" "$@"
