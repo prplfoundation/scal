@@ -116,6 +116,11 @@ cmd_remove() {
 	ubus_call remove
 }
 
+cmd_commit() {
+	json_init
+	ubus_call commit
+}
+
 usage() {
 	cat <<EOF
 Usage: $0 [<options>] <command> [<arguments>]
@@ -131,6 +136,7 @@ Commands:
 	set <model> <object> <param> <value>	Set a parameter value
 	add <model> <object> <name>		Add an object instance
 	remove <model> <object>			Remove an object instance
+	commit <model>				Commit all changes
 
 EOF
 	exit 1
@@ -144,7 +150,7 @@ while [ -n "$1" ]; do
 		-r) recursive=1;;
 		-s) sep="$1"; shift;;
 		-*) echo "Unknown option: $command"; break;;
-		list|get|set|add|remove)
+		list|get|set|add|remove|commit)
 			model="$1"; shift
 			[ -n "$model" ] || usage
 			"cmd_$command" "$@"
