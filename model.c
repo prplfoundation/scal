@@ -489,6 +489,62 @@ out:
 }
 
 static int
+scald_model_handle_remove(struct ubus_context *ctx, struct ubus_object *obj,
+			  struct ubus_request_data *req, const char *method,
+			  struct blob_attr *msg)
+{
+	struct scald_model *m = container_of(obj, struct scald_model, ubus);
+	struct scapi_ptr ptr = { .model = &m->scapi };
+	struct blob_attr *tb[__M_OBJ_MAX];
+	struct scapi_list_ctx lctx;
+	int ret = SC_ERR_NOT_FOUND;
+
+	blobmsg_parse(obj_policy, __M_OBJ_MAX, tb, blob_data(msg), blob_len(msg));
+
+	ptr.path = tb[M_OBJ_PATH];
+	if (!ptr.path)
+	    return UBUS_STATUS_INVALID_ARGUMENT;
+
+	scald_acl_req_init(req, method);
+
+	scald_model_iterate_init(&lctx, kvlist_scald_param_entry_len);
+	scald_model_iterate_plugins(&lctx, &ptr) {
+		int cur_ret;
+
+		if (ptr.plugin->object_get(&ptr))
+			continue;
+
+		ret = SC_ERR_NOT_SUPPORTED;
+		if (!ptr.plugin->object_remove)
+			continue;
+
+		scald_acl_req_prepare(&ptr);
+		scald_acl_req_add_object(&ptr);
+		if (scald_acl_req_check(&ptr)) {
+			ret = SC_ERR_ACCESS_DENIED;
+			break;
+		}
+
+		cur_ret = ptr.plugin->object_remove(&ptr);
+		if (cur_ret == SC_ERR_NOT_SUPPORTED)
+			continue;
+
+		ret = cur_ret;
+		break;
+	}
+
+	if (ret) {
+		blob_buf_init(&b, 0);
+		scald_report_error(&b, "error", ret);
+		ubus_send_reply(ctx, req, b.head);
+	}
+
+	scald_acl_req_done();
+
+	return 0;
+}
+
+static int
 scald_model_commit_validate(struct ubus_context *ctx, struct ubus_object *obj,
 			    struct ubus_request_data *req, const char *method,
 			    struct blob_attr *msg)
@@ -542,6 +598,7 @@ static struct ubus_method model_object_methods[] = {
 	UBUS_METHOD_MASK("get", scald_model_handle_get, obj_policy, M_GET_MASK),
 	UBUS_METHOD_MASK("set", scald_model_handle_set, obj_policy, M_SET_MASK),
 	UBUS_METHOD_MASK("add", scald_model_handle_add, obj_policy, M_ADD_MASK),
+	UBUS_METHOD_MASK("remove", scald_model_handle_remove, obj_policy, M_OBJ_MASK),
 	UBUS_METHOD_NOARG("validate", scald_model_commit_validate),
 	UBUS_METHOD_NOARG("commit", scald_model_commit_validate),
 };
