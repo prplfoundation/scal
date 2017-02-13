@@ -94,6 +94,28 @@ int sj_object_get_instances(struct sj_model *model, struct sj_object *obj,
 	return 0;
 }
 
+int sj_object_add_instance(struct sj_model *model, struct sj_object *obj, const char *name)
+{
+	struct sj_object_param *par;
+
+	par = obj->get_instance_keys;
+	if (!par || !par->backend || !par->backend->add)
+		return SC_ERR_INVALID_ARGUMENT;
+
+	return sj_param_add(model, par, name);
+}
+
+int sj_object_remove_instance(struct sj_model *model, struct sj_object *obj, const char *name)
+{
+	struct sj_object_param *par;
+
+	par = obj->get_instance_keys;
+	if (!par || !par->backend || !par->backend->remove)
+		return SC_ERR_INVALID_ARGUMENT;
+
+	return sj_param_remove(model, par, name);
+}
+
 int sj_object_set_instance(struct sj_model *model, struct sj_object *obj, const char *name)
 {
 	struct blob_attr *cur, *list;

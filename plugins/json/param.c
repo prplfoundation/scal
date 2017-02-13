@@ -113,6 +113,42 @@ sj_param_set(struct sj_model *model, struct sj_object_param *par,
 		       blobmsg_get_string(data));
 }
 
+int
+sj_param_add(struct sj_model *model, struct sj_object_param *par,
+	     const char *name)
+{
+	struct sj_backend *be = par->backend;
+	int ret;
+
+	if (!be->add)
+		return SC_ERR_NOT_SUPPORTED;
+
+	ret = sj_param_prepare(model, par, &b);
+	if (ret)
+		return ret;
+
+	be->default_session->changed = true;
+	return be->add(be->default_session, blobmsg_data(b.head), name);
+}
+
+int
+sj_param_remove(struct sj_model *model, struct sj_object_param *par,
+	     const char *name)
+{
+	struct sj_backend *be = par->backend;
+	int ret;
+
+	if (!be->remove)
+		return SC_ERR_NOT_SUPPORTED;
+
+	ret = sj_param_prepare(model, par, &b);
+	if (ret)
+		return ret;
+
+	be->default_session->changed = true;
+	return be->remove(be->default_session, blobmsg_data(b.head), name);
+}
+
 void
 sj_param_get_backend_info(struct sj_model *model, struct sj_object_param *par,
 			  struct blob_buf *buf)

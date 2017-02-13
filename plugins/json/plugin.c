@@ -96,6 +96,42 @@ sj_api_object_list(struct scapi_ptr *ptr, scapi_object_cb fill,
 }
 
 static int
+sj_api_object_add(struct scapi_ptr *ptr, const char *name, struct kvlist *values)
+{
+	struct sj_model *model = ptr->model_priv;
+	struct sj_object *obj;
+	bool instances;
+	int ret;
+
+	ret = sj_object_get_from_path(model, ptr->path, &obj, &instances);
+	if (ret)
+		return ret;
+
+	if (!instances)
+		return SC_ERR_NOT_SUPPORTED;
+
+	return sj_object_add_instance(model, obj, name);
+}
+
+static int
+sj_api_object_remove(struct scapi_ptr *ptr)
+{
+	struct sj_model *model = ptr->model_priv;
+	struct sj_object *obj;
+	bool instances;
+	int ret;
+
+	ret = sj_object_get_from_path(model, ptr->path, &obj, &instances);
+	if (ret)
+		return ret;
+
+	if (instances || !obj->instance)
+		return SC_ERR_NOT_SUPPORTED;
+
+	return sj_object_remove_instance(model, obj, obj->instance);
+}
+
+static int
 sj_api_param_list(struct scapi_ptr *ptr, scapi_param_cb fill,
 		  struct scapi_list_ctx *ctx)
 {
@@ -301,6 +337,8 @@ struct scapi_plugin plugin = {
 
 	.object_list = sj_api_object_list,
 	.object_get = sj_api_object_get,
+	.object_add = sj_api_object_add,
+	.object_remove = sj_api_object_remove,
 
 	.param_list = sj_api_param_list,
 	.param_get = sj_api_param_get,

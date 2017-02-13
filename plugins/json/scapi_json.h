@@ -112,6 +112,9 @@ struct sj_backend {
 	int (*get)(struct sj_session *s, struct blob_attr *data, struct blob_buf *buf);
 	int (*set)(struct sj_session *s, struct blob_attr *data, const char *value);
 
+	int (*add)(struct sj_session *s, struct blob_attr *data, const char *name);
+	int (*remove)(struct sj_session *s, struct blob_attr *data, const char *name);
+
 	int (*validate)(struct sj_session *s);
 	int (*commit)(struct sj_session *s);
 };
@@ -130,6 +133,8 @@ void sj_object_run_script(struct sj_model *model, struct sj_object *obj);
 int sj_object_set_instance(struct sj_model *model, struct sj_object *obj, const char *name);
 int sj_object_get_instances(struct sj_model *model, struct sj_object *obj,
 			    struct blob_attr **val);
+int sj_object_add_instance(struct sj_model *model, struct sj_object *obj, const char *name);
+int sj_object_remove_instance(struct sj_model *model, struct sj_object *obj, const char *name);
 int sj_object_get_from_path(struct sj_model *model, struct blob_attr *path,
 			    struct sj_object **ret, bool *instances);
 
@@ -137,6 +142,10 @@ int sj_param_get(struct sj_model *model, struct sj_object_param *par,
 		 struct blob_attr **data);
 int sj_param_set(struct sj_model *model, struct sj_object_param *par,
 		 struct blob_attr *data);
+int sj_param_add(struct sj_model *model, struct sj_object_param *par,
+		 const char *name);
+int sj_param_remove(struct sj_model *model, struct sj_object_param *par,
+		    const char *name);
 
 void sj_param_get_backend_info(struct sj_model *model, struct sj_object_param *par,
 			       struct blob_buf *buf);

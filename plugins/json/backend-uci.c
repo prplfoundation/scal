@@ -249,23 +249,41 @@ uci_match_section(struct uci_context *ctx, struct uci_section *s,
 }
 
 static int
-uci_backend_find_section(struct uci_session *s, struct blob_attr **tb, struct blob_buf *buf)
+uci_backend_load_package(struct uci_session *s, struct blob_attr **tb, struct uci_package **p)
 {
-	struct blob_attr *cur;
-	const char *type, *package;
-	struct uci_package *p;
-	struct uci_element *e;
-	void *c;
-	int type_idx = 0;
+	const char *package;
 
 	if (!tb[UCI_A_SECTION_TYPE] || !tb[UCI_A_PACKAGE])
 		return SC_ERR_INVALID_ARGUMENT;
 
-	type = blobmsg_get_string(tb[UCI_A_SECTION_TYPE]);
 	package = blobmsg_get_string(tb[UCI_A_PACKAGE]);
 
-	if (uci_load(s->ctx, package, &p))
+	*p = uci_lookup_package(s->ctx, package);
+	if (*p)
+		return 0;
+
+	if (uci_load(s->ctx, package, p))
 		return SC_ERR_NOT_FOUND;
+
+	return 0;
+}
+
+static int
+uci_backend_find_section(struct uci_session *s, struct blob_attr **tb, struct blob_buf *buf)
+{
+	struct blob_attr *cur;
+	struct uci_package *p;
+	struct uci_element *e;
+	const char *type;
+	void *c;
+	int type_idx = 0;
+	int ret;
+
+	ret = uci_backend_load_package(s, tb, &p);
+	if (ret)
+		return ret;
+
+	type = blobmsg_get_string(tb[UCI_A_SECTION_TYPE]);
 
 	cur = tb[UCI_A_SECTION_OPTIONS];
 	if (cur && blobmsg_check_array(cur, BLOBMSG_TYPE_STRING) < 0)
@@ -292,13 +310,61 @@ uci_backend_find_section(struct uci_session *s, struct blob_attr **tb, struct bl
 	return 0;
 }
 
+static int
+uci_backend_change_sections(struct uci_session *s, struct blob_attr **tb, const char *name, bool add)
+{
+	struct uci_ptr ptr;
+	const char *type;
+	int ret;
+
+	memset(&ptr, 0, sizeof(ptr));
+	ret = uci_backend_load_package(s, tb, &ptr.p);
+	if (ret)
+		return ret;
+
+	type = blobmsg_get_string(tb[UCI_A_SECTION_TYPE]);
+	ptr.s = uci_lookup_section(s->ctx, ptr.p, name);
+
+	if (add) {
+		if (ptr.s)
+			return SC_ERR_ALREADY_EXISTS;
+
+		ptr.section = name;
+		ptr.value = type;
+
+		ret = uci_set(s->ctx, &ptr);
+	} else {
+		if (!ptr.s)
+			return SC_ERR_NOT_FOUND;
+
+		if (strcmp(ptr.s->type, type) != 0)
+			return SC_ERR_INVALID_ARGUMENT;
+
+		ret = uci_delete(s->ctx, &ptr);
+	}
+
+	if (ret)
+		return SC_ERR_UPDATE_FAILED;
+
+	return 0;
+}
+
 static const struct {
 	const char *name;
 	int (*get)(struct uci_session *s, struct blob_attr **tb, struct blob_buf *buf);
 	int (*set)(struct uci_session *s, struct blob_attr **tb, const char *value);
+	int (*change_list)(struct uci_session *s, struct blob_attr **tb, const char *value, bool add);
 } modes[] = {
-	{ "find_section", uci_backend_find_section, NULL },
-	{ "default", uci_backend_get_default, uci_backend_set_default },
+	{
+		.name = "section",
+		.get = uci_backend_find_section,
+		.change_list = uci_backend_change_sections,
+	},
+	{
+		.name = "default",
+		.get = uci_backend_get_default,
+		.set = uci_backend_set_default,
+	},
 };
 
 static int uci_backend_get_mode(struct blob_attr **tb)
@@ -385,12 +451,42 @@ static int uci_backend_commit(struct sj_session *ctx)
 	return 0;
 }
 
+static int uci_backend_list_op(struct sj_session *ctx, struct blob_attr *data, const char *name, bool add)
+{
+	struct uci_session *s = sj_to_uci(ctx);
+	struct blob_attr *tb[__UCI_A_MAX];
+	int i;
+
+	blobmsg_parse(uci_policy, __UCI_A_MAX, tb, blobmsg_data(data), blobmsg_data_len(data));
+	i = uci_backend_get_mode(tb);
+	if (i < 0)
+		return SC_ERR_INVALID_ARGUMENT;
+
+	if (!modes[i].change_list)
+		return SC_ERR_NOT_SUPPORTED;
+
+	return modes[i].change_list(s, tb, name, add);
+}
+
+static int uci_backend_add(struct sj_session *s, struct blob_attr *data, const char *name)
+{
+	return uci_backend_list_op(s, data, name, true);
+}
+
+static int uci_backend_remove(struct sj_session *s, struct blob_attr *data, const char *name)
+{
+	return uci_backend_list_op(s, data, name, false);
+}
+
 static struct sj_backend uci_backend = {
 	.session_alloc = uci_backend_session_alloc,
 	.session_free = uci_backend_session_free,
 
 	.get = uci_backend_get,
 	.set = uci_backend_set,
+
+	.add = uci_backend_add,
+	.remove = uci_backend_remove,
 
 	.validate = uci_backend_validate,
 	.commit = uci_backend_commit,
