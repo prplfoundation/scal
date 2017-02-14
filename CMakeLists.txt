@@ -15,7 +15,7 @@ FIND_LIBRARY(ubox_library NAMES ubox)
 FIND_LIBRARY(ubus_library NAMES ubus)
 FIND_LIBRARY(blobmsg_json_library NAMES blobmsg_json)
 
-ADD_EXECUTABLE(scald scald.c ubus.c plugin.c model.c acl.c)
+ADD_EXECUTABLE(scald scald.c ubus.c plugin.c model.c acl.c event.c)
 TARGET_LINK_LIBRARIES(scald ubus ${ubox_library} ${ubus_library} dl)
 
 ADD_EXECUTABLE(test-acld test-acld.c)

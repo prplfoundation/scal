@@ -46,13 +46,13 @@ scald_acl_req_done(void)
 	ubus_method = NULL;
 }
 
-void
+struct blob_buf *
 scald_acl_req_prepare(struct scapi_ptr *ptr)
 {
 	void *c;
 
 	if (!acl_object.has_subscribers)
-		return;
+		return NULL;
 
 	blob_buf_init(&b, 0);
 
@@ -65,46 +65,17 @@ scald_acl_req_prepare(struct scapi_ptr *ptr)
 	if (ubus_req->acl.group)
 		blobmsg_add_string(&b, "group", ubus_req->acl.group);
 	blobmsg_close_array(&b, c);
+
+	return &b;
 }
 
 void
-scald_acl_req_add_object(struct scapi_ptr *ptr)
+scald_acl_req_add_new_instance(struct blob_buf *buf, const char *name)
 {
-	void *c;
-
-	if (!acl_object.has_subscribers)
+	if (!buf)
 		return;
 
-	c = blobmsg_open_array(&b, "path");
-	if (ptr->path)
-		blob_put_raw(&b, blobmsg_data(ptr->path), blobmsg_data_len(ptr->path));
-	if (!strcmp(ubus_method, "list"))
-		blobmsg_add_string(&b, NULL, ptr->obj->name);
-	blobmsg_close_array(&b, c);
-
-	if (ptr->plugin->object_get_acl)
-		ptr->plugin->object_get_acl(ptr, &b);
-}
-
-void
-scald_acl_req_add_new_instance(const char *name)
-{
-	if (!acl_object.has_subscribers)
-		return;
-
-	blobmsg_add_string(&b, "name", name);
-}
-
-void
-scald_acl_req_add_param(struct scapi_ptr *ptr)
-{
-	if (!acl_object.has_subscribers)
-		return;
-
-	blobmsg_add_string(&b, "param", ptr->par->name);
-
-	if (ptr->plugin->param_get_acl)
-		ptr->plugin->param_get_acl(ptr, &b);
+	blobmsg_add_string(buf, "name", name);
 }
 
 struct ubus_event_req {
@@ -122,14 +93,14 @@ acl_event_cb(struct ubus_notify_request *req, int idx, int ret)
 }
 
 int
-scald_acl_req_check(struct scapi_ptr *ptr)
+scald_acl_req_check(struct blob_buf *buf)
 {
 	struct ubus_event_req ureq = {};
 
-	if (!acl_object.has_subscribers)
+	if (!buf)
 		return 0;
 
-	if (ubus_notify_async(ubus_ctx, &acl_object, "check", b.head, &ureq.req))
+	if (ubus_notify_async(ubus_ctx, &acl_object, "check", buf->head, &ureq.req))
 		return 0;
 
 	ureq.req.status_cb = acl_event_cb;
