@@ -60,6 +60,15 @@ Object: scald.<datamodel>
     is provided as a string in the "value" attribute
     Example: ubus call scald.tr-181 set '{"path": [ "Device", "ManagementServer" ], "name": "Username", "value": "baz" }'
 
+  - add:
+    Adds a new object instance
+    Instance name is provided as a string in the "name" attribute
+    Example: ubus call scald.tr-181 add '{"path": [ "Device", "ManagementServer", "ManageableDevice" ], "name": "test" }'
+
+  - remove:
+    Remove an object instance
+    Example: ubus call scald.tr-181 add '{"path": [ "Device", "ManagementServer", "ManageableDevice", "test" ] }'
+
 
 Object: scald.acl
   This object is used to allow an external daemon to perform ACL checks for
