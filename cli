@@ -102,8 +102,6 @@ cmd_add() {
 
 	set_path "$path"
 	json_add_string name "$name"
-	json_add_object values
-	json_close_object
 	ubus_call add
 }
 

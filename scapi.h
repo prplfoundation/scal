@@ -86,20 +86,10 @@ struct scapi_plugin {
 	int (*object_get)(struct scapi_ptr *ptr);
 
 	/*
-	 * Fetch defaults for a newly created instance of an object by path
-	 *
-	 * ptr: reference to plugin, data model, path to the parent object
-	 *      of the new instance
-	 * kv: string key/value list to store defaults
-	 */
-	int (*object_get_defaults)(struct scapi_ptr *ptr, struct kvlist *kv);
-
-	/*
 	 * Create a new object instance
 	 *
 	 * ptr: reference to plugin, data model, path to the parent object
 	 * name: name of the new object instance
-	 * values: default values for the object
 	 *
 	 * Must return SC_ERR_NOT_SUPPORTED if the plugin does not support creating
 	 * an object on the specified path and another plugin might.
@@ -107,7 +97,7 @@ struct scapi_plugin {
 	 * All other errors are treated as fatal and do not allow deferring to a
 	 * different plugin.
 	 */
-	int (*object_add)(struct scapi_ptr *ptr, const char *name, struct kvlist *values);
+	int (*object_add)(struct scapi_ptr *ptr, const char *name);
 
 	/*
 	 * Delete an object instance

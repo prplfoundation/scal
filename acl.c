@@ -87,20 +87,12 @@ scald_acl_req_add_object(struct scapi_ptr *ptr)
 }
 
 void
-scald_acl_req_add_new_instance(const char *name, struct kvlist *kv)
+scald_acl_req_add_new_instance(const char *name)
 {
-	const char *value;
-	void *c;
-
 	if (!acl_object.has_subscribers)
 		return;
 
 	blobmsg_add_string(&b, "name", name);
-
-	c = blobmsg_open_table(&b, "values");
-	kvlist_for_each(kv, name, value)
-		blobmsg_add_string(&b, name, value);
-	blobmsg_close_table(&b, c);
 }
 
 void

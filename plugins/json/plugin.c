@@ -96,7 +96,7 @@ sj_api_object_list(struct scapi_ptr *ptr, scapi_object_cb fill,
 }
 
 static int
-sj_api_object_add(struct scapi_ptr *ptr, const char *name, struct kvlist *values)
+sj_api_object_add(struct scapi_ptr *ptr, const char *name)
 {
 	struct sj_model *model = ptr->model_priv;
 	struct sj_object *obj;

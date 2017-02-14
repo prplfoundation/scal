@@ -92,13 +92,12 @@ static const struct blobmsg_policy obj_policy[__M_OBJ_MAX] = {
 	[M_OBJ_PATH] = { "path", BLOBMSG_TYPE_ARRAY },
 	[M_OBJ_NAME] = { "name", BLOBMSG_TYPE_STRING },
 	[M_OBJ_VALUE] = { "value", BLOBMSG_TYPE_STRING },
-	[M_OBJ_VALUES] = { "values", BLOBMSG_TYPE_TABLE },
 };
 
 #define M_OBJ_MASK (1 << M_OBJ_PATH)
 #define M_GET_MASK (M_OBJ_MASK | (1 << M_OBJ_NAME))
 #define M_SET_MASK (M_GET_MASK | (1 << M_OBJ_VALUE))
-#define M_ADD_MASK (M_GET_MASK | (1 << M_OBJ_VALUES))
+#define M_ADD_MASK M_GET_MASK
 
 
 static const char *error_strings[] = {
@@ -385,22 +384,6 @@ scald_model_handle_set(struct ubus_context *ctx, struct ubus_object *obj,
 }
 
 static int
-scald_kvlist_add_strings(struct kvlist *kv, struct blob_attr *attr)
-{
-	struct blob_attr *cur;
-	int rem;
-
-	blobmsg_for_each_attr(cur, attr, rem) {
-		if (blobmsg_type(cur) != BLOBMSG_TYPE_STRING)
-			return SC_ERR_INVALID_ARGUMENT;
-
-		kvlist_set(kv, blobmsg_name(cur), blobmsg_get_string(cur));
-	}
-
-	return 0;
-}
-
-static int
 scald_model_handle_add(struct ubus_context *ctx, struct ubus_object *obj,
 		       struct ubus_request_data *req, const char *method,
 		       struct blob_attr *msg)
@@ -410,14 +393,13 @@ scald_model_handle_add(struct ubus_context *ctx, struct ubus_object *obj,
 	struct blob_attr *tb[__M_OBJ_MAX];
 	struct scapi_list_ctx lctx;
 	int ret = SC_ERR_NOT_FOUND;
-	KVLIST(kv, kvlist_strlen);
 	const char *name;
 	void *c;
 
 	blobmsg_parse(obj_policy, __M_OBJ_MAX, tb, blob_data(msg), blob_len(msg));
 
 	ptr.path = tb[M_OBJ_PATH];
-	if (!ptr.path || !tb[M_OBJ_NAME] || !tb[M_OBJ_VALUES])
+	if (!ptr.path || !tb[M_OBJ_NAME])
 	    return UBUS_STATUS_INVALID_ARGUMENT;
 
 	scald_acl_req_init(req, method);
@@ -430,22 +412,6 @@ scald_model_handle_add(struct ubus_context *ctx, struct ubus_object *obj,
 	blobmsg_add_string(&b, NULL, name);
 	blobmsg_close_array(&b, c);
 	ptr.path = blob_data(b.head);
-
-	scald_model_iterate_plugins(&lctx, &ptr) {
-		if (ptr.plugin->object_get(&ptr) == 0) {
-			ret = SC_ERR_ALREADY_EXISTS;
-			goto out;
-		}
-
-		if (!ptr.plugin->object_get_defaults)
-			continue;
-
-		ptr.plugin->object_get_defaults(&ptr, &kv);
-	}
-
-	ret = scald_kvlist_add_strings(&kv, tb[M_OBJ_VALUES]);
-	if (ret)
-		goto out;
 
 	ret = SC_ERR_NOT_FOUND;
 	ptr.path = tb[M_OBJ_PATH];
@@ -460,22 +426,19 @@ scald_model_handle_add(struct ubus_context *ctx, struct ubus_object *obj,
 
 		scald_acl_req_prepare(&ptr);
 		scald_acl_req_add_object(&ptr);
-		scald_acl_req_add_new_instance(name, &kv);
+		scald_acl_req_add_new_instance(name);
 		if (scald_acl_req_check(&ptr)) {
 			ret = SC_ERR_ACCESS_DENIED;
 			break;
 		}
 
-		cur_ret = ptr.plugin->object_add(&ptr, name, &kv);
+		cur_ret = ptr.plugin->object_add(&ptr, name);
 		if (cur_ret == SC_ERR_NOT_SUPPORTED)
 			continue;
 
 		ret = cur_ret;
 		break;
 	}
-
-out:
-	kvlist_free(&kv);
 
 	if (ret) {
 		blob_buf_init(&b, 0);
