@@ -30,11 +30,13 @@ struct blob_buf *scald_event_new(struct ubus_object *obj)
 void scald_event_add_ptr(struct blob_buf *buf, struct scapi_ptr *ptr,
 			 enum scapi_ptr_type type)
 {
+	struct scald_model *m = container_of(ptr->model, struct scald_model, scapi);
 	void *c;
 
 	if (!buf)
 		return;
 
+	blobmsg_add_string(buf, "model", m->scapi.name);
 	blobmsg_add_string(buf, "plugin", ptr->plugin->name);
 
 	if (type == SCAPI_PTR_PLUGIN)
