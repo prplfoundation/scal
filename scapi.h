@@ -41,6 +41,8 @@ struct scapi_ptr {
 	struct blob_attr *path;
 	struct scapi_object *obj;
 	struct scapi_parameter *par;
+
+	struct blob_attr *value;
 };
 
 struct scapi_plugin {

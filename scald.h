@@ -38,10 +38,12 @@ enum scapi_ptr_type {
 	SCAPI_PTR_OBJ,
 	SCAPI_PTR_OBJ_ENTRY,
 	SCAPI_PTR_PARAM,
+	SCAPI_PTR_PARAM_VALUE,
 };
 
 extern const char *ubus_prefix;
 extern struct ubus_context *ubus_ctx;
+extern struct ubus_object main_object;
 
 int scald_ubus_init(const char *path);
 void scald_plugin_load(const char *path);
@@ -52,6 +54,8 @@ void scald_plugin_add_option(char *arg);
 struct blob_buf *scald_event_new(struct ubus_object *obj);
 void scald_event_add_ptr(struct blob_buf *buf, struct scapi_ptr *ptr,
 			 enum scapi_ptr_type type);
+void scald_event_notify(const char *type, struct scapi_ptr *ptr,
+			enum scapi_ptr_type ptr_type);
 
 void scald_acl_init(struct ubus_context *ctx);
 

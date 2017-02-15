@@ -59,4 +59,29 @@ void scald_event_add_ptr(struct blob_buf *buf, struct scapi_ptr *ptr,
 
 	if (ptr->plugin->param_get_acl)
 		ptr->plugin->param_get_acl(ptr, buf);
+
+	if (type == SCAPI_PTR_PARAM_VALUE)
+		blobmsg_add_field(buf, blobmsg_type(ptr->value), "value",
+				  blobmsg_data(ptr->value),
+				  blobmsg_data_len(ptr->value));
+}
+
+void scald_event_notify(const char *type, struct scapi_ptr *ptr,
+			enum scapi_ptr_type ptr_type)
+{
+	struct scald_model *m = container_of(ptr->model, struct scald_model, scapi);
+	struct blob_buf *buf;
+
+	buf = scald_event_new(&m->ubus);
+	if (!buf)
+		buf = scald_event_new(&main_object);
+	if (!buf) {
+		fprintf(stderr, "no buf\n");
+		return;
+	}
+
+	scald_event_add_ptr(buf, ptr, ptr_type);
+
+	ubus_notify(ubus_ctx, &m->ubus, type, buf->head, -1);
+	ubus_notify(ubus_ctx, &main_object, type, buf->head, -1);
 }

@@ -357,7 +357,10 @@ scald_model_handle_set(struct ubus_context *ctx, struct ubus_object *obj,
 			break;
 		}
 
-		ret = ptr.plugin->param_write(&ptr, tb[M_OBJ_VALUE]);
+		ptr.value = tb[M_OBJ_VALUE];
+		ret = ptr.plugin->param_write(&ptr, ptr.value);
+		if (!ret)
+			scald_event_notify("set", &ptr, SCAPI_PTR_PARAM_VALUE);
 		break;
 	}
 
@@ -425,6 +428,10 @@ scald_model_handle_add(struct ubus_context *ctx, struct ubus_object *obj,
 			continue;
 
 		ret = cur_ret;
+		if (!ret) {
+			ptr.path = blob_data(b.head);
+			scald_event_notify("add", &ptr, SCAPI_PTR_OBJ);
+		}
 		break;
 	}
 
@@ -479,6 +486,8 @@ scald_model_handle_remove(struct ubus_context *ctx, struct ubus_object *obj,
 			continue;
 
 		ret = cur_ret;
+		if (!ret)
+			scald_event_notify("remove", &ptr, SCAPI_PTR_OBJ);
 		break;
 	}
 
