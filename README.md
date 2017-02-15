@@ -30,6 +30,22 @@ Object: scald
 
     Example: { "models": { "tr-181": { "plugins": [ "example" ] } } }
 
+  The object will send out notifications for changes made to the data model.
+  The notify type describes the change type: ("set", "add", "remove")
+  They contain the following fields:
+  - plugin:
+    Name of the plugin providing the object/parameter being accessed
+  - model:
+    Name of the affected data model
+  - path:
+    Path to the object
+  - param:
+    Name of the affected parameter
+  - value:
+    New value of the affected parameter
+
+  The same events can also be received on a per-datamodel basis on the
+  data model object described below.
 
 Object: scald.<datamodel>
   All methods that refer to an object (or an object path) take a string array
