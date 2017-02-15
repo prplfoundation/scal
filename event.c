@@ -16,12 +16,28 @@
  */
 #include "scald.h"
 
+struct blob_buf *scald_event_new(struct ubus_object *obj)
+{
+	static struct blob_buf b;
+
+	if (!obj->has_subscribers)
+		return NULL;
+
+	blob_buf_init(&b, 0);
+	return &b;
+}
+
 void scald_event_add_ptr(struct blob_buf *buf, struct scapi_ptr *ptr,
 			 enum scapi_ptr_type type)
 {
 	void *c;
 
 	if (!buf)
+		return;
+
+	blobmsg_add_string(buf, "plugin", ptr->plugin->name);
+
+	if (type == SCAPI_PTR_PLUGIN)
 		return;
 
 	c = blobmsg_open_array(buf, "path");

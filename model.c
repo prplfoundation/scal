@@ -136,12 +136,9 @@ static void
 scald_model_handle_list_cb(struct scapi_list_ctx *ctx, struct scapi_object *obj)
 {
 	struct scald_object_entry *cur;
-	struct blob_buf *buf;
 
 	ctx->ptr->obj = obj;
-	buf = scald_acl_req_prepare(ctx->ptr);
-	scald_event_add_ptr(buf, ctx->ptr, SCAPI_PTR_OBJ_ENTRY);
-	if (scald_acl_req_check(buf))
+	if (scald_acl_req_check(ctx->ptr, SCAPI_PTR_OBJ_ENTRY))
 		return;
 
 	cur = kvlist_get(&ctx->kv, obj->name);
@@ -195,15 +192,12 @@ static void
 scald_model_handle_param_cb(struct scapi_list_ctx *ctx, struct scapi_parameter *par)
 {
 	struct scald_param_entry *cur;
-	struct blob_buf *buf;
 	int val_len = 1;
 	int len;
 	char *data;
 
 	ctx->ptr->par = par;
-	buf = scald_acl_req_prepare(ctx->ptr);
-	scald_event_add_ptr(buf, ctx->ptr, SCAPI_PTR_PARAM);
-	if (scald_acl_req_check(buf))
+	if (scald_acl_req_check(ctx->ptr, SCAPI_PTR_PARAM))
 		return;
 
 	cur = kvlist_get(&ctx->kv, par->name);
@@ -301,17 +295,13 @@ scald_model_handle_get(struct ubus_context *ctx, struct ubus_object *obj,
 
 	blob_buf_init(&b, 0);
 	scald_model_iterate_plugins(&lctx, &ptr) {
-		struct blob_buf *buf;
-
 		if (ptr.plugin->object_get(&ptr))
 			continue;
 
 		if (ptr.plugin->param_get(&ptr, name))
 			continue;
 
-		buf = scald_acl_req_prepare(&ptr);
-		scald_event_add_ptr(buf, &ptr, SCAPI_PTR_PARAM);
-		if (scald_acl_req_check(buf))
+		if (scald_acl_req_check(&ptr, SCAPI_PTR_PARAM))
 			ret = SC_ERR_ACCESS_DENIED;
 		else
 			ret = ptr.plugin->param_read(&ptr, &b);
@@ -351,8 +341,6 @@ scald_model_handle_set(struct ubus_context *ctx, struct ubus_object *obj,
 	name = blobmsg_get_string(tb[M_OBJ_NAME]);
 
 	scald_model_iterate_plugins(&lctx, &ptr) {
-		struct blob_buf *buf;
-
 		if (ptr.plugin->object_get(&ptr))
 			continue;
 
@@ -364,9 +352,7 @@ scald_model_handle_set(struct ubus_context *ctx, struct ubus_object *obj,
 			break;
 		}
 
-		buf = scald_acl_req_prepare(&ptr);
-		scald_event_add_ptr(buf, &ptr, SCAPI_PTR_PARAM);
-		if (scald_acl_req_check(buf)) {
+		if (scald_acl_req_check(&ptr, SCAPI_PTR_PARAM)) {
 			ret = SC_ERR_ACCESS_DENIED;
 			break;
 		}
@@ -419,7 +405,6 @@ scald_model_handle_add(struct ubus_context *ctx, struct ubus_object *obj,
 	ret = SC_ERR_NOT_FOUND;
 	ptr.path = tb[M_OBJ_PATH];
 	scald_model_iterate_plugins(&lctx, &ptr) {
-		struct blob_buf *buf;
 		int cur_ret;
 
 		if (!ptr.plugin->object_add)
@@ -428,13 +413,12 @@ scald_model_handle_add(struct ubus_context *ctx, struct ubus_object *obj,
 		if (ptr.plugin->object_get(&ptr))
 			continue;
 
-		buf = scald_acl_req_prepare(&ptr);
-		scald_event_add_ptr(buf, &ptr, SCAPI_PTR_OBJ);
-		scald_acl_req_add_new_instance(buf, name);
-		if (scald_acl_req_check(buf)) {
+		ptr.path = blob_data(b.head);
+		if (scald_acl_req_check(&ptr, SCAPI_PTR_OBJ)) {
 			ret = SC_ERR_ACCESS_DENIED;
 			break;
 		}
+		ptr.path = tb[M_OBJ_PATH];
 
 		cur_ret = ptr.plugin->object_add(&ptr, name);
 		if (cur_ret == SC_ERR_NOT_SUPPORTED)
@@ -476,7 +460,6 @@ scald_model_handle_remove(struct ubus_context *ctx, struct ubus_object *obj,
 
 	scald_model_iterate_init(&lctx, kvlist_scald_param_entry_len);
 	scald_model_iterate_plugins(&lctx, &ptr) {
-		struct blob_buf *buf;
 		int cur_ret;
 
 		if (ptr.plugin->object_get(&ptr))
@@ -486,9 +469,7 @@ scald_model_handle_remove(struct ubus_context *ctx, struct ubus_object *obj,
 		if (!ptr.plugin->object_remove)
 			continue;
 
-		buf = scald_acl_req_prepare(&ptr);
-		scald_event_add_ptr(buf, &ptr, SCAPI_PTR_OBJ);
-		if (scald_acl_req_check(buf)) {
+		if (scald_acl_req_check(&ptr, SCAPI_PTR_OBJ)) {
 			ret = SC_ERR_ACCESS_DENIED;
 			break;
 		}
@@ -528,8 +509,6 @@ scald_model_commit_validate(struct ubus_context *ctx, struct ubus_object *obj,
 
 	blob_buf_init(&b, 0);
 	scald_model_iterate_plugins(&lctx, &ptr) {
-		struct blob_buf *buf;
-
 		if (!strcmp(method, "validate"))
 			cb = ptr.plugin->validate;
 		else if (!strcmp(method, "commit"))
@@ -537,8 +516,7 @@ scald_model_commit_validate(struct ubus_context *ctx, struct ubus_object *obj,
 		if (!cb)
 			continue;
 
-		buf = scald_acl_req_prepare(&ptr);
-		if (scald_acl_req_check(buf))
+		if (scald_acl_req_check(&ptr, SCAPI_PTR_PLUGIN))
 			ret = SC_ERR_ACCESS_DENIED;
 		else
 			ret = cb(&ptr);

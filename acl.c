@@ -17,7 +17,6 @@
 #include "scapi.h"
 #include "scald.h"
 
-static struct blob_buf b;
 static struct ubus_request_data *ubus_req;
 static const char *ubus_method;
 
@@ -46,38 +45,6 @@ scald_acl_req_done(void)
 	ubus_method = NULL;
 }
 
-struct blob_buf *
-scald_acl_req_prepare(struct scapi_ptr *ptr)
-{
-	void *c;
-
-	if (!acl_object.has_subscribers)
-		return NULL;
-
-	blob_buf_init(&b, 0);
-
-	blobmsg_add_string(&b, "method", ubus_method);
-	blobmsg_add_string(&b, "plugin", ptr->plugin->name);
-
-	c = blobmsg_open_table(&b, "ubus");
-	if (ubus_req->acl.user)
-		blobmsg_add_string(&b, "user", ubus_req->acl.user);
-	if (ubus_req->acl.group)
-		blobmsg_add_string(&b, "group", ubus_req->acl.group);
-	blobmsg_close_array(&b, c);
-
-	return &b;
-}
-
-void
-scald_acl_req_add_new_instance(struct blob_buf *buf, const char *name)
-{
-	if (!buf)
-		return;
-
-	blobmsg_add_string(buf, "name", name);
-}
-
 struct ubus_event_req {
 	struct ubus_notify_request req;
 	bool deny;
@@ -93,12 +60,26 @@ acl_event_cb(struct ubus_notify_request *req, int idx, int ret)
 }
 
 int
-scald_acl_req_check(struct blob_buf *buf)
+scald_acl_req_check(struct scapi_ptr *ptr, enum scapi_ptr_type type)
 {
 	struct ubus_event_req ureq = {};
+	struct blob_buf *buf;
+	void *c;
 
+	buf = scald_event_new(&acl_object);
 	if (!buf)
 		return 0;
+
+	blobmsg_add_string(buf, "method", ubus_method);
+
+	c = blobmsg_open_table(buf, "ubus");
+	if (ubus_req->acl.user)
+		blobmsg_add_string(buf, "user", ubus_req->acl.user);
+	if (ubus_req->acl.group)
+		blobmsg_add_string(buf, "group", ubus_req->acl.group);
+	blobmsg_close_array(buf, c);
+
+	scald_event_add_ptr(buf, ptr, type);
 
 	if (ubus_notify_async(ubus_ctx, &acl_object, "check", buf->head, &ureq.req))
 		return 0;

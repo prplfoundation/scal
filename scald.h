@@ -34,6 +34,7 @@ struct scald_model {
 };
 
 enum scapi_ptr_type {
+	SCAPI_PTR_PLUGIN,
 	SCAPI_PTR_OBJ,
 	SCAPI_PTR_OBJ_ENTRY,
 	SCAPI_PTR_PARAM,
@@ -48,17 +49,14 @@ struct scald_model *scald_model_new(const char *name);
 void scald_status_models_dump(struct blob_buf *buf);
 void scald_plugin_add_option(char *arg);
 
+struct blob_buf *scald_event_new(struct ubus_object *obj);
+void scald_event_add_ptr(struct blob_buf *buf, struct scapi_ptr *ptr,
+			 enum scapi_ptr_type type);
+
 void scald_acl_init(struct ubus_context *ctx);
 
 void scald_acl_req_init(struct ubus_request_data *req, const char *method);
-struct blob_buf *scald_acl_req_prepare(struct scapi_ptr *ptr);
-void scald_acl_req_add_object(struct scapi_ptr *ptr);
-void scald_acl_req_add_param(struct scapi_ptr *ptr);
-void scald_acl_req_add_new_instance(struct blob_buf *buf, const char *name);
-int scald_acl_req_check(struct blob_buf *buf);
+int scald_acl_req_check(struct scapi_ptr *ptr, enum scapi_ptr_type type);
 void scald_acl_req_done(void);
-
-void scald_event_add_ptr(struct blob_buf *buf, struct scapi_ptr *ptr,
-			 enum scapi_ptr_type type);
 
 #endif
