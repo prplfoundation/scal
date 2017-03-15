@@ -144,7 +144,7 @@ Remove an object instance.
 Example:
 
 ```
-ubus call scald.tr-181 add '{"path": [ "Device", "ManagementServer", "ManageableDevice", "test" ] }'
+ubus call scald.tr-181 remove '{"path": [ "Device", "ManagementServer", "ManageableDevice", "test" ] }'
 ```
 
 
